@@ -2,62 +2,6 @@ import AVFoundation
 import AVKit
 import Cocoa
 
-private let kShowResolutionOptions = "showCameraResolutionOptions"
-
-// MARK: - Preferences
-
-class QCPreferencesViewController: NSViewController {
-
-    var onChange: (() -> Void)?
-
-    private let checkbox = NSButton(
-        checkboxWithTitle: "Show camera resolution options",
-        target: nil,
-        action: nil
-    )
-
-    override func loadView() {
-        let container = NSView(frame: NSRect(x: 0, y: 0, width: 340, height: 80))
-        checkbox.translatesAutoresizingMaskIntoConstraints = false
-        checkbox.target = self
-        checkbox.action = #selector(checkboxChanged(_:))
-        checkbox.state = UserDefaults.standard.bool(forKey: kShowResolutionOptions) ? .on : .off
-        container.addSubview(checkbox)
-        NSLayoutConstraint.activate([
-            checkbox.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            checkbox.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-        ])
-        self.view = container
-    }
-
-    @objc private func checkboxChanged(_ sender: NSButton) {
-        UserDefaults.standard.set(sender.state == .on, forKey: kShowResolutionOptions)
-        onChange?()
-    }
-}
-
-class QCPreferencesWindowController: NSWindowController {
-
-    convenience init() {
-        let vc = QCPreferencesViewController()
-        let window = NSWindow(contentViewController: vc)
-        window.title = "Preferences"
-        window.styleMask = [.titled, .closable]
-        window.setContentSize(NSSize(width: 340, height: 80))
-        window.center()
-        self.init(window: window)
-    }
-
-    var preferencesViewController: QCPreferencesViewController? {
-        return contentViewController as? QCPreferencesViewController
-    }
-
-    override func showWindow(_ sender: Any?) {
-        window?.center()
-        super.showWindow(sender)
-    }
-}
-
 // MARK: - QCAppDelegate Class
 @NSApplicationMain
 class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
@@ -169,10 +113,9 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
                 deviceMenuItem.keyEquivalent = String(deviceIndex + 1)
             }
 
-            // Add resolution change submenu only if enabled in Preferences
-            if UserDefaults.standard.bool(forKey: kShowResolutionOptions) {
-                addResolutionsTo(menuItem: deviceMenuItem, forDevice: device)
-            }
+            // Every device carries its resolution submenu. Net Camera's audience wants the
+            // control, so it is unconditional rather than hidden behind a preference.
+            addResolutionsTo(menuItem: deviceMenuItem, forDevice: device)
 
             deviceMenu.addItem(deviceMenuItem)
             deviceIndex += 1
@@ -539,21 +482,6 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
     // MARK: Resolutions
 
     var selectedSourceResolution: Int = -1
-    var preferencesWindowController: QCPreferencesWindowController?
-
-    // MARK: Preferences
-
-    @IBAction func openPreferences(_ sender: Any?) {
-        if preferencesWindowController == nil {
-            preferencesWindowController = QCPreferencesWindowController()
-            // Rebuild the device menu immediately whenever the checkbox is toggled
-            preferencesWindowController?.preferencesViewController?.onChange = { [weak self] in
-                self?.detectVideoDevices()
-            }
-        }
-        preferencesWindowController?.showWindow(self)
-        NSApp.activate(ignoringOtherApps: true)
-    }
 
     @objc func sourceResolutionsMenuChanged(_ sender: NSMenuItem) {
         for menuItem: NSMenuItem in sender.parent!.submenu!.items {
