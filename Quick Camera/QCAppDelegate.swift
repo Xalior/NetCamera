@@ -89,39 +89,79 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
         let deviceMenu: NSMenu = NSMenu()
         var deviceIndex: Int = 0
 
-        // Here we need to keep track of the current device (if selected) in order to keep it checked in the menu
-        var currentDevice: AVCaptureDevice = self.devices[defaultDeviceIndex]
-        if self.captureSession != nil {
-            currentDevice = (self.captureSession.inputs[0] as! AVCaptureDeviceInput).device
-        } else {
+        if self.captureSession == nil {
             NSLog("first time - loadSettings")
             self.loadSettings()
         }
+        // Fall back to the first device: if the selected one has just been unplugged there is
+        // no session device left to match against. refreshSourceMenuState() settles the real
+        // selection once the menu is built.
         self.selectedDeviceIndex = defaultDeviceIndex
 
         for device: AVCaptureDevice in self.devices {
+            // The device item carries neither an action nor a key equivalent. AppKit fires
+            // neither on a menu item that owns a submenu, and every device owns one — so both
+            // live on the submenu's "Use This Camera" item instead. The item keeps its
+            // checkmark, which is display state and works on a submenu owner.
             let deviceMenuItem: NSMenuItem = NSMenuItem(
-                title: device.localizedName, action: #selector(deviceMenuChanged), keyEquivalent: ""
-            )
-            deviceMenuItem.target = self
+                title: device.localizedName, action: nil, keyEquivalent: "")
             deviceMenuItem.representedObject = deviceIndex
-            if device == currentDevice {
-                deviceMenuItem.state = NSControl.StateValue.on
-                self.selectedDeviceIndex = deviceIndex
-            }
-            if deviceIndex < 9 {
-                deviceMenuItem.keyEquivalent = String(deviceIndex + 1)
-            }
 
             // Every device carries its resolution submenu. Net Camera's audience wants the
             // control, so it is unconditional rather than hidden behind a preference.
-            addResolutionsTo(menuItem: deviceMenuItem, forDevice: device)
+            addResolutionsTo(menuItem: deviceMenuItem, forDevice: device, deviceIndex: deviceIndex)
 
             deviceMenu.addItem(deviceMenuItem)
             deviceIndex += 1
         }
 
         selectSourceMenu.submenu = deviceMenu
+        refreshSourceMenuState()
+    }
+
+    /// The device the capture session is currently running on, or nil before the first
+    /// session exists.
+    var activeCaptureDevice: AVCaptureDevice? {
+        (self.captureSession?.inputs.first as? AVCaptureDeviceInput)?.device
+    }
+
+    /// Recompute every checkmark in Select Source from what the hardware is actually doing —
+    /// the session's device, and that device's activeFormat. Menu state is derived rather
+    /// than remembered, so it cannot drift from the capture state it claims to describe.
+    func refreshSourceMenuState() {
+        guard let deviceMenu = selectSourceMenu.submenu, self.devices != nil else { return }
+        let activeDevice =
+            self.activeCaptureDevice
+            ?? (self.devices.indices.contains(selectedDeviceIndex)
+                ? self.devices[selectedDeviceIndex] : self.devices.first)
+
+        for deviceMenuItem: NSMenuItem in deviceMenu.items {
+            guard let deviceIndex = deviceMenuItem.representedObject as? Int,
+                self.devices.indices.contains(deviceIndex)
+            else { continue }
+            let device: AVCaptureDevice = self.devices[deviceIndex]
+            let isActive: Bool = (device == activeDevice)
+            deviceMenuItem.state = isActive ? .on : .off
+            if isActive { self.selectedDeviceIndex = deviceIndex }
+
+            let activeDims = CMVideoFormatDescriptionGetDimensions(
+                device.activeFormat.formatDescription)
+            for item: NSMenuItem in deviceMenuItem.submenu?.items ?? [] {
+                guard let index = item.representedObject as? Int else { continue }
+                if item.action == #selector(deviceMenuChanged) {
+                    item.state = isActive ? .on : .off
+                } else if device.formats.indices.contains(index) {
+                    // Resolution items are matched on dimensions, not on format identity: the
+                    // submenu lists each WxH once, so the active format is often a later
+                    // same-size entry that no menu item stands for individually.
+                    let dims = CMVideoFormatDescriptionGetDimensions(
+                        device.formats[index].formatDescription)
+                    item.state =
+                        (dims.width == activeDims.width && dims.height == activeDims.height)
+                        ? .on : .off
+                }
+            }
+        }
     }
 
     func startCaptureWithVideoDevice(defaultDevice: Int) {
@@ -454,18 +494,12 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
     // MARK: - Device Menu Actions
     @objc func deviceMenuChanged(_ sender: NSMenuItem) {
         NSLog("Device Menu changed")
-        if sender.state == NSControl.StateValue.on {
-            // selected the active device, so nothing to do here
-            return
-        }
+        guard let deviceIndex = sender.representedObject as? Int,
+            self.devices.indices.contains(deviceIndex)
+        else { return }
 
-        // set the checkbox on the currently selected device
-        for menuItem: NSMenuItem in selectSourceMenu.submenu!.items {
-            menuItem.state = NSControl.StateValue.off
-        }
-        sender.state = NSControl.StateValue.on
-
-        self.startCaptureWithVideoDevice(defaultDevice: sender.representedObject as! Int)
+        self.startCaptureWithVideoDevice(defaultDevice: deviceIndex)
+        self.refreshSourceMenuState()
     }
 
     // MARK: - Application Lifecycle
@@ -484,25 +518,19 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
     var selectedSourceResolution: Int = -1
 
     @objc func sourceResolutionsMenuChanged(_ sender: NSMenuItem) {
-        for menuItem: NSMenuItem in sender.parent!.submenu!.items {
-            menuItem.state = NSControl.StateValue.off;
-        }
-        sender.state = NSControl.StateValue.on;
+        guard let formatIndex = sender.representedObject as? Int,
+            let deviceMenuItem = sender.parent,
+            let deviceIndex = deviceMenuItem.representedObject as? Int,
+            self.devices.indices.contains(deviceIndex)
+        else { return }
 
-        /// should have a pair of device to res
-        self.selectedSourceResolution = sender.representedObject as! Int
+        self.selectedSourceResolution = formatIndex
+        self.selectedDeviceIndex = deviceIndex
 
-        let deviceMenuItem = sender.parent!
-        for menuItem: NSMenuItem in deviceMenuItem.parent!.submenu!.items {
-            menuItem.state = NSControl.StateValue.off;
-        }
-        deviceMenuItem.state = NSControl.StateValue.on
-
-        self.selectedDeviceIndex = deviceMenuItem.representedObject as! Int
-
-        /// then select the device and resolution
-        self.startCaptureWithVideoDevice(defaultDevice: self.selectedDeviceIndex)
+        // Choosing a resolution also chooses its camera, so the device may change here too.
+        self.startCaptureWithVideoDevice(defaultDevice: deviceIndex)
         self.applyResolutionToDevice()
+        self.refreshSourceMenuState()
     }
 
     func applyResolutionToDevice()
@@ -520,39 +548,40 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
         device.unlockForConfiguration()
     }
 
-    // MARK - source resolutions
-    func addResolutionsTo(menuItem: NSMenuItem, forDevice: AVCaptureDevice) {
+    // MARK: - source resolutions
 
-        let selectedDevice = forDevice
-        let resolutionsMenu = NSMenu();
+    /// Build a device's submenu: the item that selects the camera, then one item per
+    /// distinct resolution the device advertises. Net Camera reports what the hardware
+    /// claims to support; it does not audit whether the hardware can deliver it.
+    func addResolutionsTo(menuItem: NSMenuItem, forDevice device: AVCaptureDevice, deviceIndex: Int)
+    {
+        let resolutionsMenu: NSMenu = NSMenu()
 
-        var resIndex = 0;
+        // Selecting the camera. This carries the action and the Cmd-N key equivalent that the
+        // device item itself cannot, because AppKit honours neither on a submenu owner.
+        let selectItem: NSMenuItem = NSMenuItem(
+            title: "Use This Camera", action: #selector(deviceMenuChanged),
+            keyEquivalent: deviceIndex < 9 ? String(deviceIndex + 1) : "")
+        selectItem.target = self
+        selectItem.representedObject = deviceIndex
+        resolutionsMenu.addItem(selectItem)
+        resolutionsMenu.addItem(NSMenuItem.separator())
 
+        for (formatIndex, format) in device.formats.enumerated() {
+            let menuTitle: String = descriptionFor(resolution: format)
+            // Devices advertise the same dimensions once per pixel format, so list each
+            // size once and let the first entry of that size stand for it.
+            guard resolutionsMenu.indexOfItem(withTitle: menuTitle) == -1 else { continue }
 
-            for res in selectedDevice.formats {
+            let resolutionMenuItem: NSMenuItem = NSMenuItem(
+                title: menuTitle, action: #selector(sourceResolutionsMenuChanged),
+                keyEquivalent: "")
+            resolutionMenuItem.target = self
+            resolutionMenuItem.representedObject = formatIndex
+            resolutionsMenu.addItem(resolutionMenuItem)
+        }
 
-                let menuTitle = descriptionFor(resolution: res)
-
-                //if not already in the menu
-                if(resolutionsMenu.indexOfItem(withTitle: menuTitle) == -1) {
-
-                    let deviceMenuItem = NSMenuItem(title: menuTitle, action: #selector(sourceResolutionsMenuChanged), keyEquivalent: "")
-                    deviceMenuItem.target = self;
-                    deviceMenuItem.representedObject = resIndex;
-
-                    if(selectedDevice.activeFormat == res) {
-                        deviceMenuItem.state = NSControl.StateValue.on;
-                        self.selectedSourceResolution = resIndex
-                    }
-
-                    resolutionsMenu.addItem(deviceMenuItem);
-
-                    menuItem.submenu = resolutionsMenu
-                }
-                resIndex += 1;
-
-
-            }
+        menuItem.submenu = resolutionsMenu
     }
 
     private func descriptionFor(resolution: AVCaptureDevice.Format) -> String {
