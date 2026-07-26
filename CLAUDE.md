@@ -34,6 +34,21 @@ target, or the project** as a tidying exercise. `PRODUCT_NAME` is set explicitly
 `Net Camera` in both build configurations, which is how the built bundle comes out
 correctly branded without any rename.
 
+`PRODUCT_MODULE_NAME` is pinned to `Quick_Camera` in both configurations, and that
+pin is load-bearing. Nib class references are module-qualified —
+`MainMenu.xib` names the delegate as `Quick_Camera.QCAppDelegate` — and
+`PRODUCT_MODULE_NAME` otherwise defaults to `PRODUCT_NAME`, so branding the product
+would rename the Swift module out from under the nib. When that happens the failure
+is **silent and badly disguised**: the class lookup fails, no delegate is
+instantiated, `applicationDidFinishLaunching` never runs, no capture session starts,
+and AppKit auto-disables every menu item whose action targets the delegate. The
+window still opens, showing the title baked into the nib, so it presents as a camera
+or permissions fault rather than a class-lookup one.
+
+If you ever change `PRODUCT_NAME` or the module name, you must either keep this pin
+or update every `customModule` attribute in the nibs — and verify by checking that
+the window title becomes `Net Camera: [<device>]`, not merely that the build passes.
+
 ## Architecture
 
 Three Swift files:
