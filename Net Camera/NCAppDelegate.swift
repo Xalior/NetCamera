@@ -432,12 +432,13 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate {
 
     /* Saving is unavailable until the frame pipeline lands.
 
-       The picture is captured by screenshotting the app's own window, and the only API that
-       does that — CGWindowListCreateImage — is withdrawn at this deployment target, so no
-       version of the old approach compiles. The replacement does not screenshot at all: it
-       reads the processed frame at source resolution, straight from the pipeline, which is
-       both the better picture and the one the network stream will be serving. The save
-       panel flow and filename pattern return with it, unchanged. */
+       Saving a still is not a screenshot: the window holds no privileged copy of the picture,
+       it is one consumer of the processed frame like the network stream and the file are.
+       The old implementation photographed the app's own window through CGWindowListCreateImage,
+       which is withdrawn at this deployment target, and going back through the compositor for
+       pixels the app already has was the long way to a worse image regardless. Saving returns
+       reading the frame at source resolution, with this panel flow and filename pattern
+       unchanged. */
     @IBAction func saveImage(_ sender: NSMenuItem) {
         NSLog("Save Image requested; unavailable until the frame pipeline lands")
         let popup: NSAlert = NSAlert()
