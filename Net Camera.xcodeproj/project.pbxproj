@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		87673A631E35C97A002ECF15 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 87673A621E35C97A002ECF15 /* AVFoundation.framework */; };
+		E1C4A70A2E93B41100D51C0F /* NCHarnessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C0E /* NCHarnessTests.swift */; };
 		87FF95021E355CDB0017DADB /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 87FF95011E355CDB0017DADB /* AVKit.framework */; };
 		87FF95201E35B7CE0017DADB /* NCAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87FF951F1E35B7CE0017DADB /* NCAppDelegate.swift */; };
 		F435396A2D1B1B86002188A0 /* NCSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43539692D1B1B85002188A0 /* NCSettingsManager.swift */; };
@@ -31,6 +32,8 @@
 		F4CBD39916B8CE5F003A4794 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		F4CBD39A16B8CE5F003A4794 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		F4CBD39B16B8CE5F003A4794 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		E1C4A70A2E93B41100D51C06 /* Net CameraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Net CameraTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1C4A70A2E93B41100D51C0E /* NCHarnessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCHarnessTests.swift; sourceTree = "<group>"; };
 		F952D6E224E15A6200EA786D /* NCUsbWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCUsbWatcher.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -45,6 +48,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E1C4A70A2E93B41100D51C0A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -53,15 +63,25 @@
 			children = (
 				F43D252A16BB508900CBC272 /* icon.icns */,
 				F4CBD39C16B8CE5F003A4794 /* Net Camera */,
+				E1C4A70A2E93B41100D51C07 /* Net CameraTests */,
 				F4CBD39516B8CE5F003A4794 /* Frameworks */,
 				F4CBD39416B8CE5F003A4794 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		E1C4A70A2E93B41100D51C07 /* Net CameraTests */ = {
+			isa = PBXGroup;
+			children = (
+				E1C4A70A2E93B41100D51C0E /* NCHarnessTests.swift */,
+			);
+			path = "Net CameraTests";
 			sourceTree = "<group>";
 		};
 		F4CBD39416B8CE5F003A4794 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				F4CBD39316B8CE5F003A4794 /* Net Camera.app */,
+				E1C4A70A2E93B41100D51C06 /* Net CameraTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -120,6 +140,22 @@
 			productReference = F4CBD39316B8CE5F003A4794 /* Net Camera.app */;
 			productType = "com.apple.product-type.application";
 		};
+		E1C4A70A2E93B41100D51C08 /* Net CameraTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E1C4A70A2E93B41100D51C0D /* Build configuration list for PBXNativeTarget "Net CameraTests" */;
+			buildPhases = (
+				E1C4A70A2E93B41100D51C09 /* Sources */,
+				E1C4A70A2E93B41100D51C0A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Net CameraTests";
+			productName = "Net CameraTests";
+			productReference = E1C4A70A2E93B41100D51C06 /* Net CameraTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -131,6 +167,9 @@
 				LastUpgradeCheck = 1620;
 				ORGANIZATIONNAME = "D. Rimron-Soutter";
 				TargetAttributes = {
+					E1C4A70A2E93B41100D51C08 = {
+						CreatedOnToolsVersion = 26.6;
+					};
 					F4CBD39216B8CE5F003A4794 = {
 						DevelopmentTeam = M353B943AK;
 						LastSwiftMigration = "";
@@ -151,6 +190,7 @@
 			projectRoot = "";
 			targets = (
 				F4CBD39216B8CE5F003A4794 /* Net Camera */,
+				E1C4A70A2E93B41100D51C08 /* Net CameraTests */,
 			);
 		};
 /* End PBXProject section */
@@ -175,6 +215,14 @@
 				87FF95201E35B7CE0017DADB /* NCAppDelegate.swift in Sources */,
 				F952D6E324E15A6200EA786D /* NCUsbWatcher.swift in Sources */,
 				F435396A2D1B1B86002188A0 /* NCSettingsManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E1C4A70A2E93B41100D51C09 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1C4A70A2E93B41100D51C0F /* NCHarnessTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -356,6 +404,37 @@
 			};
 			name = Release;
 		};
+		E1C4A70A2E93B41100D51C0B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xalior.NetCameraTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		E1C4A70A2E93B41100D51C0C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xalior.NetCameraTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -373,6 +452,15 @@
 			buildConfigurations = (
 				F4CBD3B116B8CE5F003A4794 /* Debug */,
 				F4CBD3B216B8CE5F003A4794 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E1C4A70A2E93B41100D51C0D /* Build configuration list for PBXNativeTarget "Net CameraTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E1C4A70A2E93B41100D51C0B /* Debug */,
+				E1C4A70A2E93B41100D51C0C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
