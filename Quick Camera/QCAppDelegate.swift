@@ -173,7 +173,12 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
             // if we are "restarting" a session but the device is the same exit early
             let currentDevice: AVCaptureDevice =
                 (self.captureSession.inputs[0] as! AVCaptureDeviceInput).device
-            guard currentDevice != device else { return }
+            guard currentDevice != device else {
+                // A USB hot-plug lands here: the session is left alone, but re-assert the
+                // chosen resolution in case the device was reconfigured behind us.
+                self.applyChosenResolution(to: device)
+                return
+            }
 
             captureSession.stopRunning()
         }
@@ -192,6 +197,8 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
             self.windowTitle = String(format: "Net Camera: [%@]", device.localizedName)
             self.window.title = self.windowTitle
             self.deviceName = device.localizedName
+            // Before applySettings, which sizes the window from the format now in force.
+            self.applyChosenResolution(to: device)
             self.applySettings()
         } catch {
             NSLog("Error while opening device")
@@ -515,7 +522,10 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
 
     // MARK: Resolutions
 
-    var selectedSourceResolution: Int = -1
+    /// The resolution chosen for each camera, held as an index into that camera's formats and
+    /// keyed by its uniqueID. A camera keeps its own choice, and keeps it while another camera
+    /// is on screen.
+    var chosenFormatIndex: [String: Int] = [:]
 
     @objc func sourceResolutionsMenuChanged(_ sender: NSMenuItem) {
         guard let formatIndex = sender.representedObject as? Int,
@@ -524,28 +534,46 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
             self.devices.indices.contains(deviceIndex)
         else { return }
 
-        self.selectedSourceResolution = formatIndex
+        self.chosenFormatIndex[self.devices[deviceIndex].uniqueID] = formatIndex
         self.selectedDeviceIndex = deviceIndex
 
         // Choosing a resolution also chooses its camera, so the device may change here too.
+        // startCaptureWithVideoDevice applies the choice on both of its paths.
         self.startCaptureWithVideoDevice(defaultDevice: deviceIndex)
-        self.applyResolutionToDevice()
         self.refreshSourceMenuState()
     }
 
-    func applyResolutionToDevice()
-    {
-        let device = (self.captureSession.inputs[0] as! AVCaptureDeviceInput).device
-        try! device.lockForConfiguration()
+    /// Put the camera on the resolution chosen for it, if one has been.
+    ///
+    /// This runs on every capture start rather than only when the menu is used, because
+    /// adding an input to a fresh AVCaptureSession lets the session's preset choose the
+    /// format — which silently discards an earlier choice whenever the user switches camera
+    /// and back, or a USB hot-plug restarts capture.
+    func applyChosenResolution(to device: AVCaptureDevice) {
+        guard let formatIndex = self.chosenFormatIndex[device.uniqueID],
+            device.formats.indices.contains(formatIndex)
+        else { return }
 
-        let format = device.formats[selectedSourceResolution]
-        device.activeFormat = format
-
-        let maxFrameRateDuration = format.videoSupportedFrameRateRanges.reduce(CMTime.positiveInfinity) { (res, e) -> CMTime in
-            CMTimeMinimum(res, e.minFrameDuration)
+        let format: AVCaptureDevice.Format = device.formats[formatIndex]
+        do {
+            try device.lockForConfiguration()
+        } catch {
+            // Another process can hold the device's configuration; losing the race costs the
+            // chosen resolution, not the picture, so carry on at whatever format is in force.
+            NSLog(
+                "Could not lock %@ for configuration: %@", device.localizedName,
+                error.localizedDescription)
+            return
         }
-        device.activeVideoMinFrameDuration = maxFrameRateDuration
-        device.unlockForConfiguration()
+        defer { device.unlockForConfiguration() }
+
+        device.activeFormat = format
+        // Run the format as fast as it will go: the shortest frame duration it supports.
+        if !format.videoSupportedFrameRateRanges.isEmpty {
+            device.activeVideoMinFrameDuration = format.videoSupportedFrameRateRanges.reduce(
+                CMTime.positiveInfinity
+            ) { CMTimeMinimum($0, $1.minFrameDuration) }
+        }
     }
 
     // MARK: - source resolutions
