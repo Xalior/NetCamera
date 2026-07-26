@@ -1,148 +1,103 @@
-# Quick Camera - Project Context for AI Assistants
+# Net Camera — project context
 
-## Project Overview
+Net Camera is a macOS utility that displays a USB camera's output in a window. It is
+an Apache-2.0 fork of [Quick Camera](https://github.com/simonguest/quick-camera) by
+Simon Guest, carrying that project's full git history. See [README.md](README.md)
+for how the two projects differ.
 
-Quick Camera is a macOS utility application that displays output from USB-based cameras on the desktop. It's primarily used for presentations where users need to show external device output to an audience. The app is available on the Mac App Store.
+## Technical stack
 
-**Key Features:**
-- Display any USB camera feed in a resizable window
-- Mirror (horizontal and vertical flip)
-- Rotate in 90° increments
-- Borderless mode with always-on-top
-- Aspect ratio locking
-- Capture and save snapshots as PNG
-- Hot-plug USB camera detection
-- Persistent window position and settings
+- **Swift**, **AppKit** — traditional `NSApplication` with Interface Builder, not
+  SwiftUI. Do not suggest SwiftUI solutions; the UI lives in
+  `Quick Camera/Base.lproj/MainMenu.xib` with `@IBOutlet` / `@IBAction` wiring.
+- **AVFoundation** for capture, **IOKit** for USB hot-plug notifications,
+  **Core Graphics** for stills.
+- **Sandboxed.** `Quick Camera/Quick Camera.entitlements` grants exactly
+  `app-sandbox`, `device.camera`, and `files.user-selected.read-write`. The sandbox
+  stays on — this app targets the Mac App Store, which requires it. Any capability
+  needing more must be expressed as a sandbox-compatible entitlement, and any API
+  used must be App Store-clean.
+- **Deployment target: macOS 12.4.** Settings persist via `UserDefaults`, not
+  SwiftData or Core Data.
 
-## Technical Stack
+## Naming: why the tree says "Quick Camera"
 
-- **Platform**: macOS 12+ (Monterey and later)
-- **Language**: Swift
-- **UI Framework**: AppKit (traditional NSApplication, not SwiftUI)
-- **Build System**: Xcode project with SPM support for editing
-- **Key Frameworks**:
-  - AVFoundation (camera capture)
-  - AVKit (video preview)
-  - IOKit (USB device monitoring)
-  - Cocoa/AppKit (UI)
+The *product* is "Net Camera" — app name, bundle identifier `com.xalior.NetCamera`,
+and every user-visible string. The *tree* is not: the Xcode project file, the build
+target, the `Quick Camera/` source folder, the `QC*` filenames and class names, and
+the `Info.plist` / entitlements filenames all still carry the upstream name.
+
+That is deliberate, and it is load-bearing. Keeping the tree byte-identical to
+upstream's layout is what lets changes move between the two projects without
+manufactured conflicts. **Do not rename source files, classes, folders, the Xcode
+target, or the project** as a tidying exercise. `PRODUCT_NAME` is set explicitly to
+`Net Camera` in both build configurations, which is how the built bundle comes out
+correctly branded without any rename.
 
 ## Architecture
 
-### File Structure
+Three Swift files:
 
-The project has a simple, focused architecture with just 3 main Swift files:
+- **`QCAppDelegate.swift`** — the whole application controller: capture session
+  setup, every menu action, window management, settings coordination.
+- **`QCSettingsManager.swift`** — `QCSettingsManager.shared` singleton persisting
+  device selection, mirror states, rotation position, window frame and borderless
+  mode to `UserDefaults`.
+- **`QCUsbWatcher.swift`** — IOKit `kIOUSBDeviceClassName` notifications, reported
+  through `QCUsbWatcherDelegate`. There is a 0.5 s delay after detection because
+  macOS needs that long to finish setting up the capture device.
 
-1. **QCAppDelegate.swift** (486 lines)
-   - Main application controller
-   - Manages camera capture sessions
-   - Handles all UI interactions via IBOutlets and IBActions
-   - Coordinates settings and USB monitoring
+### Capture and display
 
-2. **QCSettingsManager.swift** (113 lines)
-   - Singleton pattern for settings management
-   - Persists user preferences via UserDefaults
-   - Manages: device selection, mirror states, rotation, window frame, borderless mode
+Frames currently never leave the preview layer: an `AVCaptureSession` feeds an
+`AVCaptureVideoPreviewLayer` which is set directly as the window view's layer. There
+is no `AVCaptureVideoDataOutput` — nothing in the process can read a frame's pixels.
 
-3. **QCUsbWatcher.swift** (69 lines)
-   - Monitors USB device connection/disconnection events
-   - Uses IOKit for low-level hardware notifications
-   - Delegate pattern to notify app when devices change
+Consequently **rotation and mirroring are display transforms, not capture
+transforms**: they are applied to the *preview layer's connection*
+(`setRotation`, `isVideoMirrored`). Anything added at the session level does not
+inherit them. This matters for any feature that needs the same picture the window
+shows.
 
-### Key Design Patterns
+Rotation is 4 positions (0–3) = 0°, 90°, 180°, 270°, and interacts with the
+upside-down setting. Window dimensions swap at 90° and 270°.
 
-- **Singleton**: `QCSettingsManager.shared` for centralized settings
-- **Delegate**: `QCUsbWatcherDelegate` for USB event notifications
-- **Interface Builder**: XIB/Storyboard with `@IBOutlet` and `@IBAction`
-- **MVC**: Traditional Model-View-Controller architecture
+### Saving stills
 
-## Important Implementation Details
+`Save Image` screenshots the window with `CGWindowListCreateImage`, not by reading
+capture frames — including a 0.1 s `RunLoop` pause to let the window repaint first.
+Note that `CGWindowListCreateImage` is **deprecated as of macOS 14** and is a
+liability for App Store submission.
 
-### Camera Management
+## Building
 
-- Uses `AVCaptureDevice.DiscoverySession` to enumerate devices
-- Supports both `.builtInWideAngleCamera` and `.externalUnknown` device types
-- Device menu dynamically updates when USB devices are connected/disconnected
-- Keyboard shortcuts 1-9 for quick camera switching
-- Prevents unnecessary session restarts when selecting the already-active device
+```bash
+make build     # Debug; pass CONFIGURATION=Release for release
+make run       # build, then launch
+make clean
+```
 
-### Display Transformations
+`xcodebuild` on some machines emits unrelated `CoreSimulator is out of date` and
+`Unable to load simulator devices` errors. This is a macOS-only project, so that
+output is noise — **judge build success by the exit status, never by the log**.
 
-- **Rotation**: 4 positions (0-3) representing 0°, 90°, 180°, 270°
-- **Position 0**: Portrait, Position 1: Landscape Left, Position 2: Portrait Upside Down, Position 3: Landscape Right
-- Rotation interacts with vertical flip (upside down) setting
-- Window dimensions swap when rotating 90°/270°
+There is no `Package.swift`; upstream removed it. There is no test target yet.
 
-### Window Behavior
+## Working on this codebase
 
-- **Borderless mode**: Removes title bar, makes window always-on-top (maximum window level), enables drag-by-background
-- **Aspect ratio**: Can be locked to match camera's native resolution
-- **Full screen**: Standard macOS full screen support
-- **Frame persistence**: Window position and size saved to UserDefaults
-
-### Image Capture
-
-- Uses `CGWindowListCreateImage` to capture window contents
-- Temporarily removes border (if present) for clean capture
-- 0.1 second RunLoop pause to allow window repaint before capture
-- Saves as PNG with timestamp in filename format: "Quick Camera Image YYYY-MM-DD at h.mm.ss a.png"
-
-### USB Monitoring
-
-- IOKit integration watches for `kIOUSBDeviceClassName` notifications
-- 0.5 second delay after detection to allow macOS to set up capture devices
-- Properly manages IOKit objects and notification port lifecycle
-
-## Code Style & Conventions
-
-- Uses `// MARK: -` comments extensively to organize code sections
-- Properties use computed properties with getters/setters that delegate to `QCSettingsManager`
-- Comprehensive NSLog statements for debugging
-- Error handling via NSAlert modal dialogs
-- Availability checks for macOS version-specific features (e.g., `@available(OSX 10.15, *)`)
-
-## Build & Distribution
-
-- Primary build: Xcode with Quick Camera.xcodeproj
-- Command line: `xcodebuild -scheme Quick\ Camera -configuration Release clean build`
-- SPM: Package.swift included for editing support in VS Code (not for primary builds)
-- App Store distribution via Mac App Store
-
-## Known Considerations
-
-1. **Interface Builder**: UI is defined in XIB/Storyboard files (not included in SPM Package.swift)
-2. **macOS 10.12+**: Image saving requires Sierra or later
-3. **macOS 10.15+**: Some format descriptor APIs require Catalina
-4. **RunLoop hack**: 0.1 second pause before screenshot capture - maintainer notes this isn't ideal
-
-## Common Tasks
-
-### Adding a new setting
-1. Add property to `QCSettingsManager`
-2. Add setter method
-3. Add to `loadSettings()`, `saveSettings()`, and `logSettings()`
-4. Add computed property in `QCAppDelegate` if needed
-5. Update `applySettings()` if it affects display
-
-### Adding a new transformation
-1. Add IBAction in `QCAppDelegate`
-2. Update `applySettings()` method
-3. Consider interactions with rotation position and mirror states
-4. Add menu item in XIB/Storyboard
-
-### Debugging camera issues
-- Check NSLog output for device detection
-- Verify device appears in `AVCaptureDevice.DiscoverySession`
-- USB watcher triggers `deviceCountChanged()` on hot-plug events
-- Session restart logic in `startCaptureWithVideoDevice()`
-
-## Future AI Assistant Notes
-
-- This is an **AppKit** app, not SwiftUI - avoid suggesting SwiftUI solutions
-- The app uses traditional MVC with Interface Builder - XIB/Storyboard files exist but aren't in SPM manifest
-- Settings persistence is via UserDefaults, not SwiftData or Core Data
-- Camera capture uses AVFoundation's `AVCaptureSession`, not newer APIs
-- Keep the simple, focused architecture - this is intentionally a lightweight utility
-
----
-
-*Last updated: May 8, 2026*
+- Keep the existing conventions: `// MARK: -` section comments, computed properties
+  that delegate to `QCSettingsManager`, `NSLog` for tracing, `NSAlert` for
+  user-facing errors.
+- Adding a setting means touching `QCSettingsManager` (property, setter,
+  `loadSettings()`, `saveSettings()`, `logSettings()`) and then `applySettings()` in
+  the delegate if it affects what is displayed.
+- Adding a transformation means an `IBAction`, a menu item in the XIB, and thinking
+  through how it composes with rotation position and both mirror states.
+- Prefer a mainstream, licence-compatible library over hand-rolling — and prefer
+  Apple's platform framework over a third-party library where the platform framework
+  is the mainstream answer. Every dependency earns a credit in the README's
+  *Standing on shoulders* section.
+- `GCC_PREFIX_HEADER` in both build configurations points at
+  `QCamera/QCamera-Prefix.pch`, which does not exist anywhere in the tree. It is
+  inert today because there are no C or Objective-C sources, but it will bite the
+  moment one is added.
