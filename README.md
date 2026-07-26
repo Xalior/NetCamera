@@ -2,8 +2,9 @@
 
 Net Camera displays the output from any USB-based camera on your macOS desktop. It
 supports mirroring (horizontal and vertical), rotation in 90° increments, resizing
-to any size, a borderless always-on-top mode, aspect-ratio locking, and saving
-stills as PNG. Cameras can be hot-plugged and the app follows them.
+to any size, a borderless always-on-top mode, aspect-ratio locking, choosing the
+camera's capture resolution, and saving stills as PNG. Cameras can be hot-plugged
+and the app follows them.
 
 The everyday use it is built around is a USB HDMI capture dongle as a
 picture-in-picture monitor — watching a bare-metal machine's video output in a
@@ -42,6 +43,11 @@ Two projects, two different bargains. Neither is a criticism of the other.
   Apple developer identity. Quick Camera's identity and App Store presence are
   Simon's and are untouched.
 - A `Makefile` so builds and launches are runnable from a terminal without Xcode's UI.
+- **Resolution selection.** Each camera in *Select Source* carries a submenu of the
+  resolutions it advertises, and the submenu is always there. Quick Camera's own
+  review of this feature asked for it to be hidden behind a preference, default off,
+  so that new users would not meet an extra menu level; Net Camera's users want the
+  control, so it is unconditional.
 
 Beyond that, this is Quick Camera's behaviour, unchanged. The frame-based pipeline
 and the features it enables are being built and are **not** in this repository yet;
@@ -73,6 +79,14 @@ credited in full:
   [Simon Guest](https://github.com/simonguest) (Apache-2.0) — not a dependency but
   the origin: Net Camera is its fork, and the great majority of this codebase is
   still Simon's and his contributors' work.
+- **Resolution selection** — the ability to choose a camera's capture resolution is
+  [gobbledygoober](https://github.com/gobbledygoober)'s work, contributed to Quick
+  Camera as [PR #59](https://github.com/simonguest/quick-camera/pull/59) and merged
+  here with their commits intact. It began as
+  [beazlr02](https://github.com/beazlr02)'s
+  [PR #14](https://github.com/simonguest/quick-camera/pull/14), which gobbledygoober
+  rebased and extended; the rebase re-authored the commits, so beazlr02's share of it
+  is recorded here rather than in the git log.
 - **Apple's platform frameworks** — AVFoundation for capture, AppKit for the
   interface, IOKit for USB hot-plug detection, Core Graphics and Core Image for
   pixels. Where the platform framework is the mainstream answer, Net Camera uses it
