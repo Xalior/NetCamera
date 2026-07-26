@@ -2,7 +2,7 @@
 This privacy policy governs your use of the software application Net Camera (“Application”) for macOS that was created by D. Rimron-Soutter. The Application is a utility to display the output of your connected USB cameras for presentations.
  
 ### Automatically Collected Information 
-The Application does not collect any information automatically.
+The Application may collect certain information automatically, including, but not limited to, the type of desktop device you use, the type of cameras discovered, your operating system, and information about the way you use the Application.
  
 This Application does not collect any data, images, or streams captured through the USB cameras.
  
@@ -16,7 +16,7 @@ This Application does not collect any data, images, or streams captured through 
 You can stop all collection of information by the Application easily by uninstalling the Application. You may use the standard uninstall processes via the application marketplace or network. 
  
 ### Data Retention Policy, Managing Your Information
-We will retain User Provided data for as long as you use the Application and for a reasonable time thereafter. If you’d like us to delete User Provided Data that you have provided via the Application, please contact us at darran@xalior.com and we will respond in a reasonable time. Please note that some or all of the User Provided Data may be required in order for the Application to function properly.
+We will retain User Provided data for as long as you use the Application and for a reasonable time thereafter. We will retain Automatically Collected information for up to 24 months and thereafter may store it in aggregate. If you’d like us to delete User Provided Data that you have provided via the Application, please contact us at darran@xalior.com and we will respond in a reasonable time. Please note that some or all of the User Provided Data may be required in order for the Application to function properly.
  
 ### Children
 We do not use the Application to knowingly solicit data from or market to children under the age of 13. If a parent or guardian becomes aware that his or her child has provided us with information without their consent, he or she should contact us at darran@xalior.com. We will delete such information from our files within a reasonable time.
