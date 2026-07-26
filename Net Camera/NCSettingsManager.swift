@@ -1,7 +1,7 @@
 import AVFoundation
 import Cocoa
 
-class QCSettingsManager {
+class NCSettingsManager {
     // MARK: - Properties
     private(set) var isMirrored: Bool = false
     private(set) var isUpsideDown: Bool = false
@@ -18,7 +18,7 @@ class QCSettingsManager {
     private(set) var frameHeight: Float = 0
 
     // MARK: - Singleton
-    static let shared: QCSettingsManager = QCSettingsManager()
+    static let shared: NCSettingsManager = NCSettingsManager()
 
     private init() {
         loadSettings()

@@ -2,12 +2,12 @@ import AVFoundation
 import AVKit
 import Cocoa
 
-// MARK: - QCAppDelegate Class
+// MARK: - NCAppDelegate Class
 @NSApplicationMain
-class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
+class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate {
 
     // MARK: - USB Watcher
-    let usb: QCUsbWatcher = QCUsbWatcher()
+    let usb: NCUsbWatcher = NCUsbWatcher()
     func deviceCountChanged() {
         self.detectVideoDevices()
         self.startCaptureWithVideoDevice(defaultDevice: selectedDeviceIndex)
@@ -24,28 +24,28 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
 
     // MARK: - Settings Properties
     var isMirrored: Bool {
-        get { QCSettingsManager.shared.isMirrored }
-        set { QCSettingsManager.shared.setMirrored(newValue) }
+        get { NCSettingsManager.shared.isMirrored }
+        set { NCSettingsManager.shared.setMirrored(newValue) }
     }
     var isUpsideDown: Bool {
-        get { QCSettingsManager.shared.isUpsideDown }
-        set { QCSettingsManager.shared.setUpsideDown(newValue) }
+        get { NCSettingsManager.shared.isUpsideDown }
+        set { NCSettingsManager.shared.setUpsideDown(newValue) }
     }
     var position: Int {
-        get { QCSettingsManager.shared.position }
-        set { QCSettingsManager.shared.setPosition(newValue) }
+        get { NCSettingsManager.shared.position }
+        set { NCSettingsManager.shared.setPosition(newValue) }
     }
     var isBorderless: Bool {
-        get { QCSettingsManager.shared.isBorderless }
-        set { QCSettingsManager.shared.setBorderless(newValue) }
+        get { NCSettingsManager.shared.isBorderless }
+        set { NCSettingsManager.shared.setBorderless(newValue) }
     }
     var isAspectRatioFixed: Bool {
-        get { QCSettingsManager.shared.isAspectRatioFixed }
-        set { QCSettingsManager.shared.setAspectRatioFixed(newValue) }
+        get { NCSettingsManager.shared.isAspectRatioFixed }
+        set { NCSettingsManager.shared.setAspectRatioFixed(newValue) }
     }
     var deviceName: String {
-        get { QCSettingsManager.shared.deviceName }
-        set { QCSettingsManager.shared.setDeviceName(newValue) }
+        get { NCSettingsManager.shared.deviceName }
+        set { NCSettingsManager.shared.setDeviceName(newValue) }
     }
 
     // MARK: - Window Properties
@@ -211,21 +211,21 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
 
     // MARK: - Settings Management
     func logSettings(label: String) {
-        QCSettingsManager.shared.logSettings(label: label)
+        NCSettingsManager.shared.logSettings(label: label)
     }
 
     func loadSettings() {
-        QCSettingsManager.shared.loadSettings()
+        NCSettingsManager.shared.loadSettings()
 
         if self.isBorderless {
             self.removeBorder()
         }
 
-        let savedW = QCSettingsManager.shared.frameWidth
-        let savedH = QCSettingsManager.shared.frameHeight
+        let savedW = NCSettingsManager.shared.frameWidth
+        let savedH = NCSettingsManager.shared.frameHeight
         if 100 < savedW && 100 < savedH {
-            let savedX = QCSettingsManager.shared.frameX
-            let savedY = QCSettingsManager.shared.frameY
+            let savedX = NCSettingsManager.shared.frameX
+            let savedY = NCSettingsManager.shared.frameY
             NSLog("loaded : x:%f,y:%f,w:%f,h:%f", savedX, savedY, savedW, savedH)
             var currentSize: CGSize = self.window.contentLayoutRect.size
             currentSize.width = CGFloat(savedW)
@@ -236,7 +236,7 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
     }
 
     func applySettings() {
-        QCSettingsManager.shared.logSettings(label: "applySettings")
+        NCSettingsManager.shared.logSettings(label: "applySettings")
 
         self.setRotation(self.position)
         self.captureLayer.connection?.isVideoMirrored = isMirrored
@@ -255,17 +255,17 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
 
     // MARK: - Settings Actions
     @IBAction func saveSettings(_ sender: NSMenuItem) {
-        QCSettingsManager.shared.setFrameProperties(
+        NCSettingsManager.shared.setFrameProperties(
             x: Float(self.window.frame.minX),
             y: Float(self.window.frame.minY),
             width: Float(self.window.frame.width),
             height: Float(self.window.frame.height)
         )
-        QCSettingsManager.shared.saveSettings()
+        NCSettingsManager.shared.saveSettings()
     }
 
     @IBAction func clearSettings(_ sender: NSMenuItem) {
-        QCSettingsManager.shared.clearSettings()
+        NCSettingsManager.shared.clearSettings()
     }
 
     // MARK: - Display Actions

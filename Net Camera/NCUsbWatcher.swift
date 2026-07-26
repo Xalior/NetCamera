@@ -3,14 +3,14 @@ import IOKit.usb
 import IOKit.usb.IOUSBLib
 
 // MARK: - Protocol
-public protocol QCUsbWatcherDelegate: AnyObject {
+public protocol NCUsbWatcherDelegate: AnyObject {
     func deviceCountChanged()
 }
 
-// MARK: - QCUsbWatcher Class
-public class QCUsbWatcher {
+// MARK: - NCUsbWatcher Class
+public class NCUsbWatcher {
     // MARK: - Properties
-    public weak var delegate: QCUsbWatcherDelegate?
+    public weak var delegate: NCUsbWatcherDelegate?
     private let notificationPort: IONotificationPortRef? = IONotificationPortCreate(
         kIOMainPortDefault)
     private var addedIterator: io_iterator_t = 0
@@ -19,7 +19,7 @@ public class QCUsbWatcher {
     // MARK: - Initialization
     public init() {
         func handleNotification(instance: UnsafeMutableRawPointer?, _ iterator: io_iterator_t) {
-            let watcher: QCUsbWatcher = Unmanaged<QCUsbWatcher>.fromOpaque(instance!)
+            let watcher: NCUsbWatcher = Unmanaged<NCUsbWatcher>.fromOpaque(instance!)
                 .takeUnretainedValue()
             while case let device:io_object_t = IOIteratorNext(iterator), device != IO_OBJECT_NULL {
 
