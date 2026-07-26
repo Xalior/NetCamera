@@ -430,72 +430,21 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate {
         }
     }
 
+    /* Saving is unavailable until the frame pipeline lands.
+
+       The picture is captured by screenshotting the app's own window, and the only API that
+       does that — CGWindowListCreateImage — is withdrawn at this deployment target, so no
+       version of the old approach compiles. The replacement does not screenshot at all: it
+       reads the processed frame at source resolution, straight from the pipeline, which is
+       both the better picture and the one the network stream will be serving. The save
+       panel flow and filename pattern return with it, unchanged. */
     @IBAction func saveImage(_ sender: NSMenuItem) {
-        if self.window.styleMask.contains(.fullScreen) {
-            NSLog("Save is not supported as window is full screen")
-            return
-        }
-
-        if captureSession != nil {
-            if #available(OSX 10.12, *) {
-                // turn borderless on, capture image, return border to previous state
-                let borderlessState: Bool = self.isBorderless
-                if borderlessState == false {
-                    NSLog("Removing border")
-                    self.removeBorder()
-                }
-
-                /* Pause the RunLoop for 0.1 sec to let the window repaint after removing the border - I'm not a fan of this approach
-                   but can't find another way to listen to an event for the window being updated. PRs welcome :) */
-                RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.1))
-
-                let cgImage: CGImage? = CGWindowListCreateImage(
-                    CGRect.null, .optionIncludingWindow, CGWindowID(self.window.windowNumber),
-                    [.boundsIgnoreFraming, .bestResolution])
-
-                if borderlessState == false {
-                    self.addBorder()
-                }
-
-                DispatchQueue.main.async {
-                    let now: Date = Date()
-                    let dateFormatter: DateFormatter = DateFormatter()
-                    dateFormatter.dateFormat = "yyyy-MM-dd"
-                    let date: String = dateFormatter.string(from: now)
-                    dateFormatter.dateFormat = "h.mm.ss a"
-                    let time: String = dateFormatter.string(from: now)
-
-                    let panel: NSSavePanel = NSSavePanel()
-                    panel.nameFieldStringValue = String(
-                        format: "Net Camera Image %@ at %@.png", date, time)
-                    panel.beginSheetModal(for: self.window) {
-                        (result: NSApplication.ModalResponse) in
-                        if result == NSApplication.ModalResponse.OK {
-                            NSLog(panel.url!.absoluteString)
-                            let destination: CGImageDestination? = CGImageDestinationCreateWithURL(
-                                panel.url! as CFURL, UTType.png.identifier as CFString, 1, nil)
-                            if destination == nil {
-                                NSLog(
-                                    "Could not write file - destination returned from CGImageDestinationCreateWithURL was nil"
-                                )
-                                self.errorMessage(
-                                    message:
-                                        "Unfortunately, the image could not be saved to this location."
-                                )
-                            } else {
-                                CGImageDestinationAddImage(destination!, cgImage!, nil)
-                                CGImageDestinationFinalize(destination!)
-                            }
-                        }
-                    }
-                }
-            } else {
-                let popup: NSAlert = NSAlert()
-                popup.messageText =
-                    "Unfortunately, saving images is only supported in Mac OSX 10.12 (Sierra) and higher."
-                popup.runModal()
-            }
-        }
+        NSLog("Save Image requested; unavailable until the frame pipeline lands")
+        let popup: NSAlert = NSAlert()
+        popup.messageText = "Save Image is not available in this build."
+        popup.informativeText =
+            "Saving returns with the frame pipeline, reading the picture at its source resolution."
+        popup.runModal()
     }
 
     // MARK: - Device Menu Actions
