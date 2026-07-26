@@ -77,6 +77,41 @@ shows.
 Rotation is 4 positions (0–3) = 0°, 90°, 180°, 270°, and interacts with the
 upside-down setting. Window dimensions swap at 90° and 270°.
 
+### Resolution selection
+
+Each camera in *Select Source* owns a submenu listing every distinct `WxH` its
+formats advertise, and `QCAppDelegate.chosenFormatIndex` remembers the pick per
+camera by `uniqueID`. The pick has to be re-applied on every capture start:
+adding an input to a fresh `AVCaptureSession` lets the session preset choose the
+format, so a choice made earlier is otherwise discarded whenever the user
+switches camera and back, or a hot-plug restarts capture.
+
+Two constraints worth knowing before touching this:
+
+- **A camera's `activeFormat` is shared process-wide, and other apps move it.**
+  Running `imagesnap` against a camera Net Camera is showing resets that camera
+  to the preset `imagesnap` asks for and leaves it there. Both apps keep working
+  — co-existence is intact — but Net Camera is then capturing at a resolution its
+  menu does not name, until the next menu action refreshes it. AVFoundation
+  offers no notification of another process's reconfiguration.
+- **Net Camera reports what the hardware advertises and does not audit it.**
+  The "USB3.0 HD VIDEO" dongle genuinely serves only 1080p while advertising ten
+  other sizes; selecting one of them yields a broken picture. That is the
+  device lying, not a bug here, and it must not be "fixed" with format
+  filtering.
+
+Menu state in *Select Source* is derived, never remembered:
+`refreshSourceMenuState()` recomputes every checkmark from the session's device
+and each device's `activeFormat`. Resolution items match on dimensions rather
+than format identity, because a camera advertises each size once per pixel
+format while the menu lists each size once.
+
+Because every camera item owns a submenu, **AppKit will not fire an action or a
+key equivalent on it** — a menu item with a submenu does neither. Selecting the
+camera therefore lives on the submenu's first item, *Use This Camera*, which
+carries the action and the ⌘N shortcut. Anything that puts a submenu on a menu
+item has to account for this; the failure is silent, and looks like a dead menu.
+
 ### Saving stills
 
 `Save Image` screenshots the window with `CGWindowListCreateImage`, not by reading
@@ -114,3 +149,9 @@ There is no `Package.swift`; upstream removed it. There is no test target yet.
   *Standing on shoulders* section.
 - Inherited junk: `GCC_PREFIX_HEADER` points at a `.pch` that does not exist. Inert
   until a C/ObjC source appears, then it bites.
+- Inherited defect: **saved window geometry is never restored.** `Save Settings`
+  writes `frameW`/`frameH`/`frameX`/`frameY` correctly, and `loadSettings()` reads
+  them and calls `setContentSize`, but the window still comes up at its nib size.
+  Confirmed identical before and after the PR #59 merge, so it is upstream's, not
+  ours. Every other saved setting — mirror, upside-down, rotation, borderless,
+  aspect-ratio lock — does restore.
