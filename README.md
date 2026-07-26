@@ -55,7 +55,7 @@ nothing above claims otherwise.
 
 ## Building
 
-Requires Xcode. Either open `Quick Camera.xcodeproj`, or from the command line:
+Requires Xcode. Either open `Net Camera.xcodeproj`, or from the command line:
 
 ```bash
 make build     # build the app
@@ -66,9 +66,9 @@ make clean     # remove build products
 `make build` defaults to the Debug configuration; pass `CONFIGURATION=Release` for a
 release build.
 
-The Xcode project, target, source folder and source filenames still carry the Quick
-Camera name. That is intentional: keeping them identical to upstream is what lets
-changes flow between the two projects without spurious conflicts.
+Upstream's names are gone from the tree — project, target, module, folders and
+source filenames are all Net Camera's. Upstream's credit is not: see the licence
+and the fork provenance above, which are a separate obligation and stay.
 
 ## Standing on shoulders
 
