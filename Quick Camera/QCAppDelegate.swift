@@ -50,7 +50,7 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
 
     // MARK: - Window Properties
     var defaultBorderStyle: NSWindow.StyleMask = NSWindow.StyleMask.closable
-    var windowTitle: String = "Quick Camera"
+    var windowTitle: String = "Net Camera"
     let defaultDeviceIndex: Int = 0
     var selectedDeviceIndex: Int = 0
 
@@ -143,7 +143,7 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
 
             self.playerView.layer = self.captureLayer
             self.playerView.layer?.backgroundColor = CGColor.black
-            self.windowTitle = String(format: "Quick Camera: [%@]", device.localizedName)
+            self.windowTitle = String(format: "Net Camera: [%@]", device.localizedName)
             self.window.title = self.windowTitle
             self.deviceName = device.localizedName
             self.applySettings()
@@ -414,7 +414,7 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
 
                     let panel: NSSavePanel = NSSavePanel()
                     panel.nameFieldStringValue = String(
-                        format: "Quick Camera Image %@ at %@.png", date, time)
+                        format: "Net Camera Image %@ at %@.png", date, time)
                     panel.beginSheetModal(for: self.window) {
                         (result: NSApplication.ModalResponse) in
                         if result == NSApplication.ModalResponse.OK {
