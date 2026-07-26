@@ -5,8 +5,8 @@
 # "Unable to load simulator devices" noise; this is a macOS-only project, so
 # success is judged solely by xcodebuild's exit status, never by its output.
 
-PROJECT       := Quick Camera.xcodeproj
-SCHEME        := Quick Camera
+PROJECT       := Net Camera.xcodeproj
+SCHEME        := Net Camera
 CONFIGURATION ?= Debug
 DERIVED_DATA  := build
 
