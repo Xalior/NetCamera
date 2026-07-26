@@ -540,6 +540,9 @@ class QCAppDelegate: NSObject, NSApplicationDelegate, QCUsbWatcherDelegate {
         // Choosing a resolution also chooses its camera, so the device may change here too.
         // startCaptureWithVideoDevice applies the choice on both of its paths.
         self.startCaptureWithVideoDevice(defaultDevice: deviceIndex)
+        // Staying on the same camera skips the session rebuild, and with it the window sizing
+        // that applySettings does — so relock the window to the shape now being captured.
+        self.fixAspectRatio()
         self.refreshSourceMenuState()
     }
 
