@@ -112,7 +112,5 @@ There is no `Package.swift`; upstream removed it. There is no test target yet.
   Apple's platform framework over a third-party library where the platform framework
   is the mainstream answer. Every dependency earns a credit in the README's
   *Standing on shoulders* section.
-- `GCC_PREFIX_HEADER` in both build configurations points at
-  `QCamera/QCamera-Prefix.pch`, which does not exist anywhere in the tree. It is
-  inert today because there are no C or Objective-C sources, but it will bite the
-  moment one is added.
+- Inherited junk: `GCC_PREFIX_HEADER` points at a `.pch` that does not exist. Inert
+  until a C/ObjC source appears, then it bites.
