@@ -538,6 +538,12 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
         // session, and survives every camera change and hot-plug.
         self.playerView.layer = self.displaySink.layer
         self.playerView.layer?.backgroundColor = CGColor.black
+        // A renderer that stops taking frames and will not be talked round is
+        // replaced wholesale, and the window has to host whatever replaces it.
+        self.displaySink.onLayerReplaced = { [weak self] layer in
+            self?.playerView.layer = layer
+            self?.playerView.layer?.backgroundColor = CGColor.black
+        }
         self.frameDistributor.add(self.displaySink)
 
         detectVideoDevices()
