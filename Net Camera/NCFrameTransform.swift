@@ -79,10 +79,10 @@ final class NCFrameTransform {
     /// 6.1e-17 rather than 0 and so resamples the whole picture through a
     /// sub-pixel offset.
     ///
-    /// Which way round the cycle's two quarter turns go —  `landscapeLeft` as
-    /// 90 degrees clockwise rather than anticlockwise — is part of the same
-    /// unproven model as the composition order below. Reversing it is swapping
-    /// entries 1 and 3 of this table.
+    /// Which way round the cycle's two quarter turns go follows from
+    /// `AVCaptureVideoOrientation`, whose four cases are each documented
+    /// separately: the cycle the settings walk — portrait, landscapeLeft,
+    /// portraitUpsideDown, landscapeRight — is quarter turns clockwise.
     private static let quarterTurns: [CGAffineTransform] = [
         CGAffineTransform(a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0),
         CGAffineTransform(a: 0, b: -1, c: 1, d: 0, tx: 0, ty: 0),
@@ -99,19 +99,19 @@ final class NCFrameTransform {
         let mirroring = orientation.mirroredInSourceSpace ? mirror : .identity
         let rotation = quarterTurns[orientation.quarterTurnsClockwise]
 
-        // THE COMPOSITION ORDER — the one open question in this transform.
+        // THE COMPOSITION ORDER, kept on one line because it is the whole of
+        // what this function decides.
         //
-        // The preview layer applies `isVideoMirrored` in the connection's own
-        // pre-rotation space and lets the rotation compose on top, so the same
-        // mirror flag reads left-right at positions 0 and 2 and top-bottom at
-        // positions 1 and 3. No line of the app computes that; it comes from
-        // Apple's documented connection semantics and has not been measured
-        // against a real camera on this machine. The visual parity sweep is
-        // what settles it.
+        // `AVCaptureConnection.videoMirrored` is documented to mirror the video
+        // "about its vertical axis" — the connection's own, before any rotation
+        // — and the rotation composes on top. That is why one mirror flag reads
+        // left-right at positions 0 and 2 and top-bottom at positions 1 and 3.
+        // No line of the app computes it because it belongs to the API the app
+        // calls, which is also where it is specified.
         //
-        // If the sweep disagrees, the fix is this line and only this line:
-        // `rotation.concatenating(mirroring)` rotates first and mirrors the
-        // result instead.
+        // Mirror in the source's space, then rotate. The alternative,
+        // `rotation.concatenating(mirroring)`, mirrors the rotated result and
+        // is a different picture at 90 and 270 degrees.
         return mirroring.concatenating(rotation)
     }
 
