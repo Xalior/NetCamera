@@ -76,6 +76,11 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
     let frameDistributor: NCFrameDistributor = NCFrameDistributor()
     let displaySink: NCDisplaySink = NCDisplaySink()
 
+    // MARK: - Netcam
+    /// The embedded web server. Always on: there is no toggle, because a netcam
+    /// that has to be switched on is a netcam that is off when it is wanted.
+    let httpServer: NCHTTPServer = NCHTTPServer()
+
     /// The orientation given to every frame. Menu actions write it on the main
     /// thread and the capture queue reads it once per frame, so it is guarded
     /// by a lock. It is also a value copied out of the settings rather than a
@@ -588,9 +593,23 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
         }
         self.frameDistributor.add(self.displaySink)
 
+        // Before the camera, because the server depends on nothing the camera
+        // provides, and because a camera that takes its time — or is not there
+        // at all — must not decide whether the app is reachable over the
+        // network.
+        self.httpServer.start { [weak self] failure in
+            self?.errorMessage(message: failure.message)
+        }
+
         detectVideoDevices()
         startCaptureWithVideoDevice(defaultDevice: defaultDeviceIndex)
         usb.delegate = self
+    }
+
+    func applicationWillTerminate(_ aNotification: Notification) {
+        // The listener is given up deliberately rather than left to the process
+        // exiting, so a quit-and-relaunch always finds the port free.
+        self.httpServer.stop()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

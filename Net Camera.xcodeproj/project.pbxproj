@@ -19,6 +19,9 @@
 		E1C4A70A2E93B41100D51C18 /* NCStillCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C17 /* NCStillCapture.swift */; };
 		E1C4A70A2E93B41100D51C19 /* NCStillCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C17 /* NCStillCapture.swift */; };
 		E1C4A70A2E93B41100D51C1B /* NCStillCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C1A /* NCStillCaptureTests.swift */; };
+		E1C4A70A2E93B41100D51C1D /* NCHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C1C /* NCHTTPServer.swift */; };
+		E1C4A70A2E93B41100D51C1F /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C1E /* index.html */; };
+		E1C4A70A2E93B41100D51C22 /* Hummingbird in Frameworks */ = {isa = PBXBuildFile; productRef = E1C4A70A2E93B41100D51C21 /* Hummingbird */; };
 		87FF95021E355CDB0017DADB /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 87FF95011E355CDB0017DADB /* AVKit.framework */; };
 		87FF95201E35B7CE0017DADB /* NCAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87FF951F1E35B7CE0017DADB /* NCAppDelegate.swift */; };
 		F435396A2D1B1B86002188A0 /* NCSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43539692D1B1B85002188A0 /* NCSettingsManager.swift */; };
@@ -51,6 +54,8 @@
 		E1C4A70A2E93B41100D51C15 /* NCFrameDistributorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFrameDistributorTests.swift; sourceTree = "<group>"; };
 		E1C4A70A2E93B41100D51C17 /* NCStillCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCStillCapture.swift; sourceTree = "<group>"; };
 		E1C4A70A2E93B41100D51C1A /* NCStillCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCStillCaptureTests.swift; sourceTree = "<group>"; };
+		E1C4A70A2E93B41100D51C1C /* NCHTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCHTTPServer.swift; sourceTree = "<group>"; };
+		E1C4A70A2E93B41100D51C1E /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		F952D6E224E15A6200EA786D /* NCUsbWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCUsbWatcher.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -62,6 +67,7 @@
 				87673A631E35C97A002ECF15 /* AVFoundation.framework in Frameworks */,
 				87FF95021E355CDB0017DADB /* AVKit.framework in Frameworks */,
 				F4CBD39716B8CE5F003A4794 /* Cocoa.framework in Frameworks */,
+				E1C4A70A2E93B41100D51C22 /* Hummingbird in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,7 +139,9 @@
 				E1C4A70A2E93B41100D51C13 /* NCDisplaySink.swift */,
 				E1C4A70A2E93B41100D51C10 /* NCFrameDistributor.swift */,
 				E1C4A70A2E93B41100D51C01 /* NCFrameTransform.swift */,
+				E1C4A70A2E93B41100D51C1C /* NCHTTPServer.swift */,
 				E1C4A70A2E93B41100D51C17 /* NCStillCapture.swift */,
+				E1C4A70A2E93B41100D51C1E /* index.html */,
 				F43539692D1B1B85002188A0 /* NCSettingsManager.swift */,
 				87FF95211E35BA3B0017DADB /* Net Camera-Info.plist */,
 				87FF951F1E35B7CE0017DADB /* NCAppDelegate.swift */,
@@ -160,6 +168,9 @@
 			dependencies = (
 			);
 			name = "Net Camera";
+			packageProductDependencies = (
+				E1C4A70A2E93B41100D51C21 /* Hummingbird */,
+			);
 			productName = "Net Camera";
 			productReference = F4CBD39316B8CE5F003A4794 /* Net Camera.app */;
 			productType = "com.apple.product-type.application";
@@ -209,6 +220,9 @@
 				Base,
 			);
 			mainGroup = F4CBD38A16B8CE5F003A4794;
+			packageReferences = (
+				E1C4A70A2E93B41100D51C20 /* XCRemoteSwiftPackageReference "hummingbird" */,
+			);
 			productRefGroup = F4CBD39416B8CE5F003A4794 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -226,6 +240,7 @@
 			files = (
 				F4CBD3AD16B8CE5F003A4794 /* MainMenu.xib in Resources */,
 				F43D252B16BB508900CBC272 /* icon.icns in Resources */,
+				E1C4A70A2E93B41100D51C1F /* index.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,6 +258,7 @@
 				E1C4A70A2E93B41100D51C11 /* NCFrameDistributor.swift in Sources */,
 				E1C4A70A2E93B41100D51C14 /* NCDisplaySink.swift in Sources */,
 				E1C4A70A2E93B41100D51C18 /* NCStillCapture.swift in Sources */,
+				E1C4A70A2E93B41100D51C1D /* NCHTTPServer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -500,6 +516,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E1C4A70A2E93B41100D51C20 /* XCRemoteSwiftPackageReference "hummingbird" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/hummingbird-project/hummingbird.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.25.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E1C4A70A2E93B41100D51C21 /* Hummingbird */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1C4A70A2E93B41100D51C20 /* XCRemoteSwiftPackageReference "hummingbird" */;
+			productName = Hummingbird;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F4CBD38B16B8CE5F003A4794 /* Project object */;
 }
