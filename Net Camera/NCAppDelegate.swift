@@ -119,6 +119,22 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
     }
 
     // MARK: - Device Management
+
+    /// Rebuilds the device list and the whole of the Select Source menu.
+    ///
+    /// Called at launch and again on every USB hot-plug, which means it can run
+    /// **while the menu the user is looking at is open** — plug a camera in with
+    /// Select Source pulled down and the new device appears in it there and then,
+    /// and can be chosen without closing anything.
+    ///
+    /// That is worth preserving deliberately, because it is not something AppKit
+    /// owes anybody: a menu ordinarily settles its contents when it opens. It
+    /// survives here because the submenu is replaced wholesale rather than
+    /// mutated item by item, and because the watcher's settling delay means the
+    /// capture device is ready by the time the item exists to be clicked.
+    /// Rebuilding this incrementally, or acting on the hot-plug sooner, would
+    /// each take it away — and would do so silently, since nothing about a menu
+    /// that is merely stale looks broken.
     func detectVideoDevices() {
         NSLog("Detecting video devices...")
         let discoverySession = AVCaptureDevice.DiscoverySession(
