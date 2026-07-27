@@ -1,6 +1,8 @@
 import AVFoundation
 import AVKit
 import Cocoa
+import ImageIO
+import UniformTypeIdentifiers
 
 // MARK: - NCAppDelegate Class
 @NSApplicationMain
@@ -466,22 +468,62 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
         }
     }
 
-    /* Saving is unavailable until the frame pipeline lands.
+    // MARK: - Saving Stills
 
-       Saving a still is not a screenshot: the window holds no privileged copy of the picture,
-       it is one consumer of the processed frame like the network stream and the file are.
-       The old implementation photographed the app's own window through CGWindowListCreateImage,
-       which is withdrawn at this deployment target, and going back through the compositor for
-       pixels the app already has was the long way to a worse image regardless. Saving returns
-       reading the frame at source resolution, with this panel flow and filename pattern
-       unchanged. */
+    /// Writes the picture to a file, as one more consumer of the processed
+    /// frame.
+    ///
+    /// Nothing here photographs the window. The window is a sink like any other
+    /// and holds no privileged copy of the picture, so the file is made from the
+    /// same frame the window is drawing — at the camera's own resolution, the
+    /// way round the user asked for it. What the window happens to be doing is
+    /// therefore irrelevant to saving: full screen, the border and the window's
+    /// size have no bearing on the file.
     @IBAction func saveImage(_ sender: NSMenuItem) {
-        NSLog("Save Image requested; unavailable until the frame pipeline lands")
-        let popup: NSAlert = NSAlert()
-        popup.messageText = "Save Image is not available in this build."
-        popup.informativeText =
-            "Saving returns with the frame pipeline, reading the picture at its source resolution."
-        popup.runModal()
+        NSLog("Save Image menu item selected")
+        NCStillCapture.requestStill(from: self.frameDistributor) { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .success(let image):
+                self.presentSavePanel(for: image)
+            case .failure(let failure):
+                // A request that produced nothing says so. Saving that silently
+                // does nothing is indistinguishable from a broken menu item.
+                NSLog("Save Image failed: %@", String(describing: failure))
+                self.errorMessage(message: failure.message)
+            }
+        }
+    }
+
+    /// The save panel: the filename pattern and the PNG write this app has
+    /// always had, over an image that now comes from the pipeline.
+    private func presentSavePanel(for image: CGImage) {
+        let now: Date = Date()
+        let dateFormatter: DateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let date: String = dateFormatter.string(from: now)
+        dateFormatter.dateFormat = "h.mm.ss a"
+        let time: String = dateFormatter.string(from: now)
+
+        let panel: NSSavePanel = NSSavePanel()
+        panel.nameFieldStringValue = String(format: "Net Camera Image %@ at %@.png", date, time)
+        panel.beginSheetModal(for: self.window) { (result: NSApplication.ModalResponse) in
+            guard result == NSApplication.ModalResponse.OK, let url: URL = panel.url else { return }
+            NSLog("Saving image to %@", url.absoluteString)
+            let destination: CGImageDestination? = CGImageDestinationCreateWithURL(
+                url as CFURL, UTType.png.identifier as CFString, 1, nil)
+            if destination == nil {
+                NSLog(
+                    "Could not write file - destination returned from CGImageDestinationCreateWithURL was nil"
+                )
+                self.errorMessage(
+                    message: "Unfortunately, the image could not be saved to this location."
+                )
+            } else {
+                CGImageDestinationAddImage(destination!, image, nil)
+                CGImageDestinationFinalize(destination!)
+            }
+        }
     }
 
     // MARK: - Device Menu Actions
