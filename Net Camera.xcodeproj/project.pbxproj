@@ -16,6 +16,9 @@
 		E1C4A70A2E93B41100D51C12 /* NCFrameDistributor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C10 /* NCFrameDistributor.swift */; };
 		E1C4A70A2E93B41100D51C14 /* NCDisplaySink.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C13 /* NCDisplaySink.swift */; };
 		E1C4A70A2E93B41100D51C16 /* NCFrameDistributorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C15 /* NCFrameDistributorTests.swift */; };
+		E1C4A70A2E93B41100D51C18 /* NCStillCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C17 /* NCStillCapture.swift */; };
+		E1C4A70A2E93B41100D51C19 /* NCStillCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C17 /* NCStillCapture.swift */; };
+		E1C4A70A2E93B41100D51C1B /* NCStillCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C1A /* NCStillCaptureTests.swift */; };
 		87FF95021E355CDB0017DADB /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 87FF95011E355CDB0017DADB /* AVKit.framework */; };
 		87FF95201E35B7CE0017DADB /* NCAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87FF951F1E35B7CE0017DADB /* NCAppDelegate.swift */; };
 		F435396A2D1B1B86002188A0 /* NCSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43539692D1B1B85002188A0 /* NCSettingsManager.swift */; };
@@ -46,6 +49,8 @@
 		E1C4A70A2E93B41100D51C10 /* NCFrameDistributor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFrameDistributor.swift; sourceTree = "<group>"; };
 		E1C4A70A2E93B41100D51C13 /* NCDisplaySink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCDisplaySink.swift; sourceTree = "<group>"; };
 		E1C4A70A2E93B41100D51C15 /* NCFrameDistributorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFrameDistributorTests.swift; sourceTree = "<group>"; };
+		E1C4A70A2E93B41100D51C17 /* NCStillCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCStillCapture.swift; sourceTree = "<group>"; };
+		E1C4A70A2E93B41100D51C1A /* NCStillCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCStillCaptureTests.swift; sourceTree = "<group>"; };
 		F952D6E224E15A6200EA786D /* NCUsbWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCUsbWatcher.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -87,6 +92,7 @@
 				E1C4A70A2E93B41100D51C15 /* NCFrameDistributorTests.swift */,
 				E1C4A70A2E93B41100D51C04 /* NCFrameTransformTests.swift */,
 				E1C4A70A2E93B41100D51C0E /* NCHarnessTests.swift */,
+				E1C4A70A2E93B41100D51C1A /* NCStillCaptureTests.swift */,
 			);
 			path = "Net CameraTests";
 			sourceTree = "<group>";
@@ -127,6 +133,7 @@
 				E1C4A70A2E93B41100D51C13 /* NCDisplaySink.swift */,
 				E1C4A70A2E93B41100D51C10 /* NCFrameDistributor.swift */,
 				E1C4A70A2E93B41100D51C01 /* NCFrameTransform.swift */,
+				E1C4A70A2E93B41100D51C17 /* NCStillCapture.swift */,
 				F43539692D1B1B85002188A0 /* NCSettingsManager.swift */,
 				87FF95211E35BA3B0017DADB /* Net Camera-Info.plist */,
 				87FF951F1E35B7CE0017DADB /* NCAppDelegate.swift */,
@@ -235,6 +242,7 @@
 				E1C4A70A2E93B41100D51C02 /* NCFrameTransform.swift in Sources */,
 				E1C4A70A2E93B41100D51C11 /* NCFrameDistributor.swift in Sources */,
 				E1C4A70A2E93B41100D51C14 /* NCDisplaySink.swift in Sources */,
+				E1C4A70A2E93B41100D51C18 /* NCStillCapture.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -247,6 +255,8 @@
 				E1C4A70A2E93B41100D51C05 /* NCFrameTransformTests.swift in Sources */,
 				E1C4A70A2E93B41100D51C12 /* NCFrameDistributor.swift in Sources */,
 				E1C4A70A2E93B41100D51C16 /* NCFrameDistributorTests.swift in Sources */,
+				E1C4A70A2E93B41100D51C19 /* NCStillCapture.swift in Sources */,
+				E1C4A70A2E93B41100D51C1B /* NCStillCaptureTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
