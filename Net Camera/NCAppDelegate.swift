@@ -4,7 +4,9 @@ import Cocoa
 
 // MARK: - NCAppDelegate Class
 @NSApplicationMain
-class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate {
+class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
+    AVCaptureVideoDataOutputSampleBufferDelegate
+{
 
     // MARK: - USB Watcher
     let usb: NCUsbWatcher = NCUsbWatcher()
@@ -57,9 +59,45 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate {
     var savedDeviceName: String = "-"
     var devices: [AVCaptureDevice]!
     var captureSession: AVCaptureSession!
-    var captureLayer: AVCaptureVideoPreviewLayer!
+    var videoOutput: AVCaptureVideoDataOutput!
 
     var input: AVCaptureDeviceInput!
+
+    // MARK: - Frame Pipeline
+    /// Where frames are delivered and processed. One serial queue, so the
+    /// transform's buffer pool and every sink see frames one at a time and in
+    /// the order the camera produced them, and nothing on it ever waits for
+    /// the main thread.
+    let captureQueue: DispatchQueue = DispatchQueue(label: "com.xalior.NetCamera.capture")
+
+    let frameTransform: NCFrameTransform = NCFrameTransform()
+    let frameDistributor: NCFrameDistributor = NCFrameDistributor()
+    let displaySink: NCDisplaySink = NCDisplaySink()
+
+    /// The orientation given to every frame. Menu actions write it on the main
+    /// thread and the capture queue reads it once per frame, so it is guarded
+    /// by a lock. It is also a value copied out of the settings rather than a
+    /// look at them: the settings and the menus belong to the main thread, and
+    /// this is the only application state the capture queue ever sees.
+    private let orientationLock: NSLock = NSLock()
+    private var frameOrientation: NCFrameOrientation = NCFrameOrientation(
+        position: 0, isMirrored: false, isUpsideDown: false)
+
+    /// Whether the current run of dropped frames has already been traced.
+    /// Capture queue only.
+    private var frameDropReported: Bool = false
+
+    private func publish(_ orientation: NCFrameOrientation) {
+        orientationLock.lock()
+        defer { orientationLock.unlock() }
+        frameOrientation = orientation
+    }
+
+    private var currentFrameOrientation: NCFrameOrientation {
+        orientationLock.lock()
+        defer { orientationLock.unlock() }
+        return frameOrientation
+    }
 
     // MARK: - Error Handling
     func errorMessage(message: String) {
@@ -180,6 +218,9 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate {
                 return
             }
 
+            // Late callbacks from the outgoing session would carry the old
+            // camera's picture into the new one's window.
+            self.videoOutput?.setSampleBufferDelegate(nil, queue: nil)
             captureSession.stopRunning()
         }
         captureSession = AVCaptureSession()
@@ -187,13 +228,43 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate {
         do {
             self.input = try AVCaptureDeviceInput(device: device)
             self.captureSession.addInput(input)
-            self.captureSession.startRunning()
-            self.captureLayer = AVCaptureVideoPreviewLayer(session: self.captureSession)
-            self.captureLayer.connection?.automaticallyAdjustsVideoMirroring = false
-            self.captureLayer.connection?.isVideoMirrored = false
 
-            self.playerView.layer = self.captureLayer
-            self.playerView.layer?.backgroundColor = CGColor.black
+            self.videoOutput = AVCaptureVideoDataOutput()
+            // BGRA is what the transform renders into and what every consumer
+            // of the frame reads.
+            self.videoOutput.videoSettings = [
+                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+            ]
+            // A frame that arrives late is worth less than the one behind it,
+            // so the newest picture wins rather than a backlog forming.
+            self.videoOutput.alwaysDiscardsLateVideoFrames = true
+            self.videoOutput.setSampleBufferDelegate(self, queue: self.captureQueue)
+
+            guard self.captureSession.canAddOutput(self.videoOutput) else {
+                NSLog("The session will not take a video data output")
+                self.errorMessage(
+                    message:
+                        "Unfortunately, this camera cannot deliver frames to Net Camera. Try a different one."
+                )
+                return
+            }
+            self.captureSession.addOutput(self.videoOutput)
+
+            // The connection hands over the camera's own picture and nothing
+            // else: orientation belongs to NCFrameTransform, which every
+            // consumer of the frame shares. The built-in FaceTime camera
+            // mirrors itself unless told not to, and that mirror would compose
+            // on top of the transform — mirroring the picture on one camera
+            // and not on another, with no setting saying so.
+            if let connection: AVCaptureConnection = self.videoOutput.connection(with: .video),
+                connection.isVideoMirroringSupported
+            {
+                connection.automaticallyAdjustsVideoMirroring = false
+                connection.isVideoMirrored = false
+            }
+
+            self.captureSession.startRunning()
+
             self.windowTitle = String(format: "Net Camera: [%@]", device.localizedName)
             self.window.title = self.windowTitle
             self.deviceName = device.localizedName
@@ -238,8 +309,13 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate {
     func applySettings() {
         NCSettingsManager.shared.logSettings(label: "applySettings")
 
-        self.setRotation(self.position)
-        self.captureLayer.connection?.isVideoMirrored = isMirrored
+        // The three settings that decide which way round the picture is, handed
+        // to the pipeline as one value. Every consumer sees the same geometry
+        // because they all read the same processed frame.
+        self.publish(
+            NCFrameOrientation(
+                position: self.position, isMirrored: self.isMirrored,
+                isUpsideDown: self.isUpsideDown))
         self.fixAspectRatio()
 
         self.borderlessMenu.state = convertToNSControlStateValue(
@@ -273,46 +349,6 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate {
         NSLog("Mirror image menu item selected")
         isMirrored = !isMirrored
         self.applySettings()
-    }
-
-    func setRotation(_ position: Int) {
-        switch position {
-        case 1:
-            if !isUpsideDown {
-                self.captureLayer.connection?.videoOrientation =
-                    AVCaptureVideoOrientation.landscapeLeft
-            } else {
-                self.captureLayer.connection?.videoOrientation =
-                    AVCaptureVideoOrientation.landscapeRight
-            }
-            break
-        case 2:
-            if !isUpsideDown {
-                self.captureLayer.connection?.videoOrientation =
-                    AVCaptureVideoOrientation.portraitUpsideDown
-            } else {
-                self.captureLayer.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
-            }
-            break
-        case 3:
-            if !isUpsideDown {
-                self.captureLayer.connection?.videoOrientation =
-                    AVCaptureVideoOrientation.landscapeRight
-            } else {
-                self.captureLayer.connection?.videoOrientation =
-                    AVCaptureVideoOrientation.landscapeLeft
-            }
-            break
-        case 0:
-            if !isUpsideDown {
-                self.captureLayer.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
-            } else {
-                self.captureLayer.connection?.videoOrientation =
-                    AVCaptureVideoOrientation.portraitUpsideDown
-            }
-            break
-        default: break
-        }
     }
 
     @IBAction func mirrorVertically(_ sender: NSMenuItem) {
@@ -459,8 +495,51 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate {
         self.refreshSourceMenuState()
     }
 
+    // MARK: - Frame Tap
+    /// Every frame the camera produces, oriented and handed to the sinks.
+    ///
+    /// Runs on the capture queue. It reads the guarded orientation and nothing
+    /// else of the application's: no menus, no settings, no window.
+    func captureOutput(
+        _ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer,
+        from connection: AVCaptureConnection
+    ) {
+        guard let source: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+            reportFrameDropped(reason: "the sample buffer carried no image buffer")
+            return
+        }
+
+        guard
+            let processed: CVPixelBuffer = self.frameTransform.apply(
+                self.currentFrameOrientation, to: source)
+        else {
+            reportFrameDropped(reason: "no buffer was vended for the oriented frame")
+            return
+        }
+
+        self.frameDropReported = false
+        self.frameDistributor.deliver(
+            processed, at: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+    }
+
+    /// Traces the first drop of a run and stays quiet until frames flow again,
+    /// so a pipeline that cannot process a frame says so once rather than
+    /// thirty times a second.
+    private func reportFrameDropped(reason: String) {
+        guard !self.frameDropReported else { return }
+        self.frameDropReported = true
+        NSLog("Dropped a frame: %@", reason)
+    }
+
     // MARK: - Application Lifecycle
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        // The window hosts the display sink's layer for the lifetime of the
+        // app. It belongs to the picture rather than to any one capture
+        // session, and survives every camera change and hot-plug.
+        self.playerView.layer = self.displaySink.layer
+        self.playerView.layer?.backgroundColor = CGColor.black
+        self.frameDistributor.add(self.displaySink)
+
         detectVideoDevices()
         startCaptureWithVideoDevice(defaultDevice: defaultDeviceIndex)
         usb.delegate = self
