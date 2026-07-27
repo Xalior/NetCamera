@@ -20,6 +20,9 @@
 		E1C4A70A2E93B41100D51C19 /* NCStillCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C17 /* NCStillCapture.swift */; };
 		E1C4A70A2E93B41100D51C1B /* NCStillCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C1A /* NCStillCaptureTests.swift */; };
 		E1C4A70A2E93B41100D51C1D /* NCHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C1C /* NCHTTPServer.swift */; };
+		E1C4A70A2E93B41100D51C24 /* NCMJPEGSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C23 /* NCMJPEGSink.swift */; };
+		E1C4A70A2E93B41100D51C25 /* NCMJPEGSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C23 /* NCMJPEGSink.swift */; };
+		E1C4A70A2E93B41100D51C27 /* NCMJPEGSinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C26 /* NCMJPEGSinkTests.swift */; };
 		E1C4A70A2E93B41100D51C1F /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C1E /* index.html */; };
 		E1C4A70A2E93B41100D51C22 /* Hummingbird in Frameworks */ = {isa = PBXBuildFile; productRef = E1C4A70A2E93B41100D51C21 /* Hummingbird */; };
 		87FF95021E355CDB0017DADB /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 87FF95011E355CDB0017DADB /* AVKit.framework */; };
@@ -56,6 +59,8 @@
 		E1C4A70A2E93B41100D51C1A /* NCStillCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCStillCaptureTests.swift; sourceTree = "<group>"; };
 		E1C4A70A2E93B41100D51C1C /* NCHTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCHTTPServer.swift; sourceTree = "<group>"; };
 		E1C4A70A2E93B41100D51C1E /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		E1C4A70A2E93B41100D51C23 /* NCMJPEGSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCMJPEGSink.swift; sourceTree = "<group>"; };
+		E1C4A70A2E93B41100D51C26 /* NCMJPEGSinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCMJPEGSinkTests.swift; sourceTree = "<group>"; };
 		F952D6E224E15A6200EA786D /* NCUsbWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCUsbWatcher.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -98,6 +103,7 @@
 				E1C4A70A2E93B41100D51C15 /* NCFrameDistributorTests.swift */,
 				E1C4A70A2E93B41100D51C04 /* NCFrameTransformTests.swift */,
 				E1C4A70A2E93B41100D51C0E /* NCHarnessTests.swift */,
+				E1C4A70A2E93B41100D51C26 /* NCMJPEGSinkTests.swift */,
 				E1C4A70A2E93B41100D51C1A /* NCStillCaptureTests.swift */,
 			);
 			path = "Net CameraTests";
@@ -140,6 +146,7 @@
 				E1C4A70A2E93B41100D51C10 /* NCFrameDistributor.swift */,
 				E1C4A70A2E93B41100D51C01 /* NCFrameTransform.swift */,
 				E1C4A70A2E93B41100D51C1C /* NCHTTPServer.swift */,
+				E1C4A70A2E93B41100D51C23 /* NCMJPEGSink.swift */,
 				E1C4A70A2E93B41100D51C17 /* NCStillCapture.swift */,
 				E1C4A70A2E93B41100D51C1E /* index.html */,
 				F43539692D1B1B85002188A0 /* NCSettingsManager.swift */,
@@ -259,6 +266,7 @@
 				E1C4A70A2E93B41100D51C14 /* NCDisplaySink.swift in Sources */,
 				E1C4A70A2E93B41100D51C18 /* NCStillCapture.swift in Sources */,
 				E1C4A70A2E93B41100D51C1D /* NCHTTPServer.swift in Sources */,
+				E1C4A70A2E93B41100D51C24 /* NCMJPEGSink.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,6 +281,8 @@
 				E1C4A70A2E93B41100D51C16 /* NCFrameDistributorTests.swift in Sources */,
 				E1C4A70A2E93B41100D51C19 /* NCStillCapture.swift in Sources */,
 				E1C4A70A2E93B41100D51C1B /* NCStillCaptureTests.swift in Sources */,
+				E1C4A70A2E93B41100D51C25 /* NCMJPEGSink.swift in Sources */,
+				E1C4A70A2E93B41100D51C27 /* NCMJPEGSinkTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
