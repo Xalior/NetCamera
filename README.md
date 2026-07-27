@@ -62,10 +62,12 @@ Two projects, two different bargains. Neither is a criticism of the other.
   direct dividend of the pipeline above: a browser becomes another consumer of the
   same frames the window is drawing.
 
-  **It does not stream yet.** The server is up and serves its page; the page's
-  picture comes from a `/stream` endpoint that is the next piece of work, so a
-  browser currently gets the page and a broken image. That is the honest state of
-  it rather than a fault to report.
+  Point a browser at `http://<the Mac>:50128/` and it shows the live picture, at
+  the camera's own resolution, scaled to fit by the browser rather than by the
+  Mac. It is served as MJPEG — one JPEG per frame down a response that never ends
+  — which is the oldest and least demanding thing that works in every browser
+  without a plugin, a player or a handshake. With nobody watching, the encoder
+  does not run at all; with several watching, a frame is still encoded only once.
 
 Beyond that, this is Quick Camera's behaviour, unchanged.
 

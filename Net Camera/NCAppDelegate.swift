@@ -81,6 +81,11 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
     /// that has to be switched on is a netcam that is off when it is wanted.
     let httpServer: NCHTTPServer = NCHTTPServer()
 
+    /// The picture as it goes out over the network. A sink like the window's,
+    /// registered on the same distributor and handed the same processed frame,
+    /// which is what makes the browser and the window show the same thing.
+    let mjpegSink: NCMJPEGSink = NCMJPEGSink()
+
     /// The orientation given to every frame. Menu actions write it on the main
     /// thread and the capture queue reads it once per frame, so it is guarded
     /// by a lock. It is also a value copied out of the settings rather than a
@@ -592,12 +597,17 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
             self?.playerView.layer?.backgroundColor = CGColor.black
         }
         self.frameDistributor.add(self.displaySink)
+        // The window first and the network second, because registration order
+        // is delivery order and the picture on the desk should not wait behind
+        // an encode. With nobody watching the stream, the second sink costs
+        // nothing at all.
+        self.frameDistributor.add(self.mjpegSink)
 
         // Before the camera, because the server depends on nothing the camera
         // provides, and because a camera that takes its time — or is not there
         // at all — must not decide whether the app is reachable over the
         // network.
-        self.httpServer.start { [weak self] failure in
+        self.httpServer.start(streaming: self.mjpegSink) { [weak self] failure in
             self?.errorMessage(message: failure.message)
         }
 

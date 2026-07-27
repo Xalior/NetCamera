@@ -90,9 +90,17 @@ final class NCHTTPServer {
     /// actually bound, which is the evidence that the server is reachable
     /// rather than merely constructed.
     ///
-    /// - Parameter onFailure: Called on the main thread, at most once, when the
-    ///   server is not going to serve anything.
-    func start(onFailure: @escaping @Sendable (StartFailure) -> Void) {
+    /// - Parameters:
+    ///   - stream: Where the picture comes from. The server registers and
+    ///     unregisters clients with it and knows nothing else about it — the
+    ///     sink's own place in the frame pipeline is somebody else's business,
+    ///     as it is for the window.
+    ///   - onFailure: Called on the main thread, at most once, when the
+    ///     server is not going to serve anything.
+    func start(
+        streaming stream: NCMJPEGSink,
+        onFailure: @escaping @Sendable (StartFailure) -> Void
+    ) {
         guard runTask == nil else { return }
 
         guard
@@ -109,14 +117,51 @@ final class NCHTTPServer {
         let page: ByteBuffer = ByteBuffer(bytes: pageData)
         let router: Router = Router()
 
-        // The one endpoint this server has: the page a browser lands on. Its
-        // <img> points at the stream, which is a separate consumer of the same
-        // frames the window draws.
+        // The page a browser lands on. Its <img> points at the stream, which is
+        // a separate consumer of the same frames the window draws.
         router.get("/") { _, _ -> Response in
             Response(
                 status: .ok,
                 headers: [.contentType: "text/html; charset=utf-8"],
                 body: ResponseBody(byteBuffer: page))
+        }
+
+        // The picture itself: a response that never ends, one JPEG per part.
+        //
+        // The client is registered before the body starts and unregistered
+        // however the body ends — normally, by error, or by the connection
+        // being cut — because a client left registered is a phantom that keeps
+        // the encoder running for nobody.
+        router.get("/stream") { _, _ -> Response in
+            let client: NCMJPEGClient = stream.open()
+            return Response(
+                status: .ok,
+                headers: [
+                    .contentType: NCMJPEGFraming.contentType,
+                    // Live pictures are not cacheable in any useful sense, and
+                    // an intermediary that held on to one would be showing a
+                    // photograph of the past for ever.
+                    .cacheControl: "no-store, no-cache, must-revalidate",
+                ],
+                body: ResponseBody { writer in
+                    defer { stream.close(client) }
+                    do {
+                        for await part: Data in client.parts {
+                            try await writer.write(ByteBuffer(bytes: part))
+                        }
+                        // Reached when the sink ends the client's stream rather
+                        // than the client leaving: the body is closed off
+                        // properly instead of merely stopping.
+                        try await writer.write(ByteBuffer(bytes: NCMJPEGFraming.terminator))
+                        try await writer.finish(nil)
+                    } catch {
+                        // A browser closing its tab, or a network that went
+                        // away mid-frame, is how a live stream ordinarily ends.
+                        // It is traced rather than thrown, because it is not a
+                        // fault of the server's.
+                        NSLog("Stream client left mid-frame: %@", String(describing: error))
+                    }
+                })
         }
 
         let application = Application(
