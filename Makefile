@@ -20,11 +20,15 @@ build:
 	$(XCODEBUILD) build
 
 # The one place in this project where exit status is not sufficient evidence.
-# `xcodebuild test` exits 0 when it runs no tests at all, so a scheme whose
-# <Testables> list is empty or names a stale BlueprintIdentifier reports a
-# green run having proved nothing. The count of executed test cases is
-# therefore asserted alongside the exit status, and a run of zero is a
-# failure. The count comes from the per-case lines XCTest emits, one apiece.
+# A test bundle that builds and contains no test methods makes `xcodebuild
+# test` report "** TEST SUCCEEDED **" and exit 0 having proved nothing. The
+# count of executed test cases is therefore asserted alongside the exit status,
+# and a run of zero is a failure. The count comes from the per-case lines
+# XCTest emits, one apiece, so the gate does not depend on the scheme at all.
+#
+# An unwired scheme is a different matter and needs no gate of ours: measured
+# on Xcode 26.6, an empty <Testables> list and a testable marked skipped each
+# exit 66 on their own.
 check:
 	@set -o pipefail; \
 	mkdir -p "$(DERIVED_DATA)"; \
@@ -38,7 +42,7 @@ check:
 	ran=`grep -c "^Test Case .* started\.$$" "$$log" || true`; \
 	if [ "$$ran" -eq 0 ]; then \
 		echo "make check: xcodebuild exited 0 but executed 0 tests --" >&2; \
-		echo "  the scheme's Testables are not wired to the test target." >&2; \
+		echo "  the test bundle built but contains no test methods." >&2; \
 		exit 1; \
 	fi; \
 	echo "make check: executed $$ran test(s)"

@@ -4,10 +4,10 @@ import XCTest
 // MARK: - The orientation mapping
 
 /// The settings-to-geometry mapping, asserted against a table written out by
-/// hand from `NCAppDelegate.setRotation` rather than derived from the
-/// implementation, so the two can disagree.
+/// hand from the cycle AVFoundation documents rather than derived from
+/// `NCFrameOrientation`, so the two can disagree.
 final class NCFrameOrientationTests: XCTestCase {
-    /// `setRotation` walks the cycle
+    /// The settings walk the cycle
     /// `[portrait, landscapeLeft, portraitUpsideDown, landscapeRight]`, which
     /// is `[0, 90, 180, 270]` degrees clockwise, and `isUpsideDown` selects the
     /// entry two places along. All sixteen combinations of the three settings
