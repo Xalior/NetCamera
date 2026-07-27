@@ -9,8 +9,12 @@ build/
 !default.mode2v3
 *.perspectivev3
 !default.perspectivev3
-*.xcworkspace
-!default.xcworkspace
+# Workspace state is per-machine and stays out, but not wholesale: the SwiftPM
+# resolution lives inside the project's workspace, and Package.resolved names
+# the exact commit of every dependency. A dependency set that exists only on one
+# machine is worthless to every other machine, so it is tracked.
+**/xcshareddata/IDEWorkspaceChecks.plist
+**/xcshareddata/WorkspaceSettings.xcsettings
 xcuserdata
 profile
 *.moved-aside

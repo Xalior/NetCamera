@@ -49,9 +49,25 @@ Two projects, two different bargains. Neither is a criticism of the other.
   so that new users would not meet an extra menu level; Net Camera's users want the
   control, so it is unconditional.
 
-Beyond that, this is Quick Camera's behaviour, unchanged. The frame-based pipeline
-and the features it enables are being built and are **not** in this repository yet;
-nothing above claims otherwise.
+- **A frame-based pipeline.** Quick Camera's frames never leave the preview layer.
+  Net Camera's leave the capture session, are rotated and mirrored once, and are
+  handed to every consumer that wants them. The window is one such consumer and
+  holds no privileged copy of the picture.
+- **Save Image saves the picture, not a screenshot.** Quick Camera photographs its
+  own window. Net Camera writes the frame the window is showing, at the camera's
+  resolution rather than the window's, and so saves happily in full screen — which
+  the screenshot approach could not do at all.
+- **A built-in web server**, on port `50128`, always on, reachable from any machine
+  that can reach the Mac. This is the netcam the fork exists for, and it is the
+  direct dividend of the pipeline above: a browser becomes another consumer of the
+  same frames the window is drawing.
+
+  **It does not stream yet.** The server is up and serves its page; the page's
+  picture comes from a `/stream` endpoint that is the next piece of work, so a
+  browser currently gets the page and a broken image. That is the honest state of
+  it rather than a fault to report.
+
+Beyond that, this is Quick Camera's behaviour, unchanged.
 
 ## Building
 
@@ -87,6 +103,13 @@ credited in full:
   [PR #14](https://github.com/simonguest/quick-camera/pull/14), which gobbledygoober
   rebased and extended; the rebase re-authored the commits, so beazlr02's share of it
   is recorded here rather than in the git log.
+- **[Hummingbird](https://github.com/hummingbird-project/hummingbird)** by the
+  Hummingbird authors (Apache-2.0) — the HTTP server Net Camera answers on. A
+  lightweight server framework on Apple's [SwiftNIO](https://github.com/apple/swift-nio),
+  and small enough to sit inside a desktop app rather than the other way round.
+  It brings SwiftNIO and the rest of the Swift server ecosystem with it; every one
+  of those packages is recorded, at the exact version used, in the project's
+  `Package.resolved`.
 - **Apple's platform frameworks** — AVFoundation for capture, AppKit for the
   interface, IOKit for USB hot-plug detection, Core Graphics and Core Image for
   pixels. Where the platform framework is the mainstream answer, Net Camera uses it
