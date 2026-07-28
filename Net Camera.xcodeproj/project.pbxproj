@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		87673A631E35C97A002ECF15 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 87673A621E35C97A002ECF15 /* AVFoundation.framework */; };
+		87FF95021E355CDB0017DADB /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 87FF95011E355CDB0017DADB /* AVKit.framework */; };
+		87FF95201E35B7CE0017DADB /* NCAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87FF951F1E35B7CE0017DADB /* NCAppDelegate.swift */; };
 		E1C4A70A2E93B41100D51C02 /* NCFrameTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C01 /* NCFrameTransform.swift */; };
 		E1C4A70A2E93B41100D51C03 /* NCFrameTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C01 /* NCFrameTransform.swift */; };
 		E1C4A70A2E93B41100D51C05 /* NCFrameTransformTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C04 /* NCFrameTransformTests.swift */; };
@@ -20,15 +22,13 @@
 		E1C4A70A2E93B41100D51C19 /* NCStillCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C17 /* NCStillCapture.swift */; };
 		E1C4A70A2E93B41100D51C1B /* NCStillCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C1A /* NCStillCaptureTests.swift */; };
 		E1C4A70A2E93B41100D51C1D /* NCHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C1C /* NCHTTPServer.swift */; };
+		E1C4A70A2E93B41100D51C1F /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C1E /* index.html */; };
+		E1C4A70A2E93B41100D51C22 /* Hummingbird in Frameworks */ = {isa = PBXBuildFile; productRef = E1C4A70A2E93B41100D51C21 /* Hummingbird */; };
 		E1C4A70A2E93B41100D51C24 /* NCMJPEGSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C23 /* NCMJPEGSink.swift */; };
 		E1C4A70A2E93B41100D51C25 /* NCMJPEGSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C23 /* NCMJPEGSink.swift */; };
 		E1C4A70A2E93B41100D51C27 /* NCMJPEGSinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C26 /* NCMJPEGSinkTests.swift */; };
-		E1C4A70A2E93B41100D51C1F /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C1E /* index.html */; };
-		E1C4A70A2E93B41100D51C22 /* Hummingbird in Frameworks */ = {isa = PBXBuildFile; productRef = E1C4A70A2E93B41100D51C21 /* Hummingbird */; };
-		87FF95021E355CDB0017DADB /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 87FF95011E355CDB0017DADB /* AVKit.framework */; };
-		87FF95201E35B7CE0017DADB /* NCAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87FF951F1E35B7CE0017DADB /* NCAppDelegate.swift */; };
+		E1C4A70A2E93B41100D51C29 /* net-camera.icon in Resources */ = {isa = PBXBuildFile; fileRef = E1C4A70A2E93B41100D51C28 /* net-camera.icon */; };
 		F435396A2D1B1B86002188A0 /* NCSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43539692D1B1B85002188A0 /* NCSettingsManager.swift */; };
-		F43D252B16BB508900CBC272 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = F43D252A16BB508900CBC272 /* icon.icns */; };
 		F4CBD39716B8CE5F003A4794 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4CBD39616B8CE5F003A4794 /* Cocoa.framework */; };
 		F4CBD3AD16B8CE5F003A4794 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = F4CBD3AB16B8CE5F003A4794 /* MainMenu.xib */; };
 		F952D6E324E15A6200EA786D /* NCUsbWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F952D6E224E15A6200EA786D /* NCUsbWatcher.swift */; };
@@ -39,15 +39,6 @@
 		87FF95011E355CDB0017DADB /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		87FF951F1E35B7CE0017DADB /* NCAppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NCAppDelegate.swift; sourceTree = "<group>"; };
 		87FF95211E35BA3B0017DADB /* Net Camera-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Net Camera-Info.plist"; sourceTree = "<group>"; };
-		F40A9A182AB7BC630082BBC6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		F43539692D1B1B85002188A0 /* NCSettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCSettingsManager.swift; sourceTree = "<group>"; };
-		F43D252A16BB508900CBC272 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
-		F43D252C16BB703100CBC272 /* Net Camera.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Net Camera.entitlements"; sourceTree = "<group>"; };
-		F4CBD39316B8CE5F003A4794 /* Net Camera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Net Camera.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		F4CBD39616B8CE5F003A4794 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
-		F4CBD39916B8CE5F003A4794 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		F4CBD39A16B8CE5F003A4794 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
-		F4CBD39B16B8CE5F003A4794 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E1C4A70A2E93B41100D51C01 /* NCFrameTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFrameTransform.swift; sourceTree = "<group>"; };
 		E1C4A70A2E93B41100D51C04 /* NCFrameTransformTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFrameTransformTests.swift; sourceTree = "<group>"; };
 		E1C4A70A2E93B41100D51C06 /* Net CameraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Net CameraTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -61,10 +52,26 @@
 		E1C4A70A2E93B41100D51C1E /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		E1C4A70A2E93B41100D51C23 /* NCMJPEGSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCMJPEGSink.swift; sourceTree = "<group>"; };
 		E1C4A70A2E93B41100D51C26 /* NCMJPEGSinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCMJPEGSinkTests.swift; sourceTree = "<group>"; };
+		E1C4A70A2E93B41100D51C28 /* net-camera.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "net-camera.icon"; sourceTree = "<group>"; };
+		F40A9A182AB7BC630082BBC6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		F43539692D1B1B85002188A0 /* NCSettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCSettingsManager.swift; sourceTree = "<group>"; };
+		F43D252C16BB703100CBC272 /* Net Camera.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Net Camera.entitlements"; sourceTree = "<group>"; };
+		F4CBD39316B8CE5F003A4794 /* Net Camera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Net Camera.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F4CBD39616B8CE5F003A4794 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		F4CBD39916B8CE5F003A4794 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		F4CBD39A16B8CE5F003A4794 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		F4CBD39B16B8CE5F003A4794 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		F952D6E224E15A6200EA786D /* NCUsbWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCUsbWatcher.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		E1C4A70A2E93B41100D51C0A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F4CBD39016B8CE5F003A4794 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -76,27 +83,9 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E1C4A70A2E93B41100D51C0A /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		F4CBD38A16B8CE5F003A4794 = {
-			isa = PBXGroup;
-			children = (
-				F43D252A16BB508900CBC272 /* icon.icns */,
-				F4CBD39C16B8CE5F003A4794 /* Net Camera */,
-				E1C4A70A2E93B41100D51C07 /* Net CameraTests */,
-				F4CBD39516B8CE5F003A4794 /* Frameworks */,
-				F4CBD39416B8CE5F003A4794 /* Products */,
-			);
-			sourceTree = "<group>";
-		};
 		E1C4A70A2E93B41100D51C07 /* Net CameraTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -107,6 +96,17 @@
 				E1C4A70A2E93B41100D51C1A /* NCStillCaptureTests.swift */,
 			);
 			path = "Net CameraTests";
+			sourceTree = "<group>";
+		};
+		F4CBD38A16B8CE5F003A4794 = {
+			isa = PBXGroup;
+			children = (
+				E1C4A70A2E93B41100D51C28 /* net-camera.icon */,
+				F4CBD39C16B8CE5F003A4794 /* Net Camera */,
+				E1C4A70A2E93B41100D51C07 /* Net CameraTests */,
+				F4CBD39516B8CE5F003A4794 /* Frameworks */,
+				F4CBD39416B8CE5F003A4794 /* Products */,
+			);
 			sourceTree = "<group>";
 		};
 		F4CBD39416B8CE5F003A4794 /* Products */ = {
@@ -162,6 +162,22 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		E1C4A70A2E93B41100D51C08 /* Net CameraTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E1C4A70A2E93B41100D51C0D /* Build configuration list for PBXNativeTarget "Net CameraTests" */;
+			buildPhases = (
+				E1C4A70A2E93B41100D51C09 /* Sources */,
+				E1C4A70A2E93B41100D51C0A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Net CameraTests";
+			productName = "Net CameraTests";
+			productReference = E1C4A70A2E93B41100D51C06 /* Net CameraTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		F4CBD39216B8CE5F003A4794 /* Net Camera */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F4CBD3B016B8CE5F003A4794 /* Build configuration list for PBXNativeTarget "Net Camera" */;
@@ -181,22 +197,6 @@
 			productName = "Net Camera";
 			productReference = F4CBD39316B8CE5F003A4794 /* Net Camera.app */;
 			productType = "com.apple.product-type.application";
-		};
-		E1C4A70A2E93B41100D51C08 /* Net CameraTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = E1C4A70A2E93B41100D51C0D /* Build configuration list for PBXNativeTarget "Net CameraTests" */;
-			buildPhases = (
-				E1C4A70A2E93B41100D51C09 /* Sources */,
-				E1C4A70A2E93B41100D51C0A /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "Net CameraTests";
-			productName = "Net CameraTests";
-			productReference = E1C4A70A2E93B41100D51C06 /* Net CameraTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -246,30 +246,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				F4CBD3AD16B8CE5F003A4794 /* MainMenu.xib in Resources */,
-				F43D252B16BB508900CBC272 /* icon.icns in Resources */,
 				E1C4A70A2E93B41100D51C1F /* index.html in Resources */,
+				E1C4A70A2E93B41100D51C29 /* net-camera.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		F4CBD38F16B8CE5F003A4794 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				87FF95201E35B7CE0017DADB /* NCAppDelegate.swift in Sources */,
-				F952D6E324E15A6200EA786D /* NCUsbWatcher.swift in Sources */,
-				F435396A2D1B1B86002188A0 /* NCSettingsManager.swift in Sources */,
-				E1C4A70A2E93B41100D51C02 /* NCFrameTransform.swift in Sources */,
-				E1C4A70A2E93B41100D51C11 /* NCFrameDistributor.swift in Sources */,
-				E1C4A70A2E93B41100D51C14 /* NCDisplaySink.swift in Sources */,
-				E1C4A70A2E93B41100D51C18 /* NCStillCapture.swift in Sources */,
-				E1C4A70A2E93B41100D51C1D /* NCHTTPServer.swift in Sources */,
-				E1C4A70A2E93B41100D51C24 /* NCMJPEGSink.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		E1C4A70A2E93B41100D51C09 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -283,6 +267,22 @@
 				E1C4A70A2E93B41100D51C1B /* NCStillCaptureTests.swift in Sources */,
 				E1C4A70A2E93B41100D51C25 /* NCMJPEGSink.swift in Sources */,
 				E1C4A70A2E93B41100D51C27 /* NCMJPEGSinkTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F4CBD38F16B8CE5F003A4794 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				87FF95201E35B7CE0017DADB /* NCAppDelegate.swift in Sources */,
+				F952D6E324E15A6200EA786D /* NCUsbWatcher.swift in Sources */,
+				F435396A2D1B1B86002188A0 /* NCSettingsManager.swift in Sources */,
+				E1C4A70A2E93B41100D51C02 /* NCFrameTransform.swift in Sources */,
+				E1C4A70A2E93B41100D51C11 /* NCFrameDistributor.swift in Sources */,
+				E1C4A70A2E93B41100D51C14 /* NCDisplaySink.swift in Sources */,
+				E1C4A70A2E93B41100D51C18 /* NCStillCapture.swift in Sources */,
+				E1C4A70A2E93B41100D51C1D /* NCHTTPServer.swift in Sources */,
+				E1C4A70A2E93B41100D51C24 /* NCMJPEGSink.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,6 +300,37 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		E1C4A70A2E93B41100D51C0B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xalior.NetCameraTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		E1C4A70A2E93B41100D51C0C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xalior.NetCameraTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		F4CBD3AE16B8CE5F003A4794 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -404,6 +435,7 @@
 		F4CBD3B116B8CE5F003A4794 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "net-camera";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Net Camera/Net Camera.entitlements";
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -436,6 +468,7 @@
 		F4CBD3B216B8CE5F003A4794 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "net-camera";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Net Camera/Net Camera.entitlements";
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -464,40 +497,18 @@
 			};
 			name = Release;
 		};
-		E1C4A70A2E93B41100D51C0B /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.xalior.NetCameraTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		E1C4A70A2E93B41100D51C0C /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.xalior.NetCameraTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		E1C4A70A2E93B41100D51C0D /* Build configuration list for PBXNativeTarget "Net CameraTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E1C4A70A2E93B41100D51C0B /* Debug */,
+				E1C4A70A2E93B41100D51C0C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		F4CBD38E16B8CE5F003A4794 /* Build configuration list for PBXProject "Net Camera" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -512,15 +523,6 @@
 			buildConfigurations = (
 				F4CBD3B116B8CE5F003A4794 /* Debug */,
 				F4CBD3B216B8CE5F003A4794 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		E1C4A70A2E93B41100D51C0D /* Build configuration list for PBXNativeTarget "Net CameraTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				E1C4A70A2E93B41100D51C0B /* Debug */,
-				E1C4A70A2E93B41100D51C0C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
