@@ -147,11 +147,28 @@ final class NCMJPEGSink: NCFrameSink, @unchecked Sendable {
     /// that cannot render says so once rather than thirty times a second.
     private var encodeFailureReported: Bool = false
 
+    /// Whether there is a picture flowing to send. Guarded by the lock; set
+    /// from the main thread by whoever owns the capture session, and read by
+    /// the server's connection tasks.
+    ///
+    /// A sink that has not been told there is a picture does not claim one, so
+    /// this starts off. Everything the sink does for a client depends on it:
+    /// with no camera the frames never arrive, and a stream opened anyway would
+    /// promise a body and then send nothing at all.
+    private var live: Bool = false
+
     /// How many clients are watching. Zero means this sink does no work at all.
     var clientCount: Int {
         lock.lock()
         defer { lock.unlock() }
         return clients.count
+    }
+
+    /// Whether the picture is flowing.
+    var isLive: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return live
     }
 
     // MARK: - Lifecycle
@@ -160,15 +177,56 @@ final class NCMJPEGSink: NCFrameSink, @unchecked Sendable {
         self.encode = encoder
     }
 
+    // MARK: - Whether there is anything to send
+
+    /// States whether the picture is flowing.
+    ///
+    /// Turning it off ends every client's stream, so a browser watching when
+    /// the camera is unplugged is told the stream has finished instead of being
+    /// left holding an open connection that will never carry another byte. It
+    /// also refuses new clients, which is what turns "connect and hang for ever"
+    /// into an answer the client can act on.
+    func setLive(_ live: Bool) {
+        lock.lock()
+        let changed: Bool = self.live != live
+        self.live = live
+        // Everyone watching leaves with the picture, and the registry is
+        // emptied under the same lock so no client is closed twice or missed.
+        let departing: [NCMJPEGClient] = live ? [] : clients
+        if !live { clients.removeAll() }
+        lock.unlock()
+
+        for client: NCMJPEGClient in departing {
+            client.finish()
+        }
+        if changed {
+            NSLog(
+                "NCMJPEGSink: the picture %@%@", live ? "is flowing" : "has stopped",
+                departing.isEmpty ? "" : String(format: ", %d client(s) sent on their way",
+                                                departing.count))
+        }
+    }
+
     // MARK: - Clients
 
-    /// Registers a client and hands back the stream of parts to write to it.
+    /// Registers a client and hands back the stream of parts to write to it, or
+    /// nil when there is no picture to send.
+    ///
     /// The caller owns the client and must close it when the connection ends.
-    func open() -> NCMJPEGClient {
-        let client = NCMJPEGClient()
+    /// Refusing here rather than in the server is what makes the refusal free
+    /// of a race: the decision and the registration happen under one lock, so a
+    /// camera that goes away at that moment either takes this client with it or
+    /// stops it being registered at all.
+    func open() -> NCMJPEGClient? {
         lock.lock()
+        guard live else {
+            lock.unlock()
+            NSLog("NCMJPEGSink: a client asked for the picture, and there is none")
+            return nil
+        }
+        let client = NCMJPEGClient()
         clients.append(client)
-        let watching = clients.count
+        let watching: Int = clients.count
         lock.unlock()
         NSLog("NCMJPEGSink: a client is watching, %d in total", watching)
         return client

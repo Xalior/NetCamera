@@ -108,6 +108,22 @@ final class NCDisplaySink: NCFrameSink {
         }
     }
 
+    // MARK: - Clearing
+
+    /// Throws away whatever is on screen, leaving the layer's black background.
+    ///
+    /// Used when the picture stops for a reason the user is about to be told
+    /// about: a camera unplugged, or access withdrawn. Without this the last
+    /// frame stays frozen in the window, which reads as a picture that is still
+    /// live and merely very still.
+    func clear() {
+        renderer.flush(removingDisplayedImage: true, completionHandler: nil)
+        formatDescription = nil
+        formatWidth = 0
+        formatHeight = 0
+        hasLoggedFirstFrame = false
+    }
+
     // MARK: - Refusal and recovery
 
     /// Decides what to do about a renderer that will not take this frame.

@@ -33,6 +33,19 @@ final class NCHTTPServer {
     private static let pageResource: String = "index"
     private static let pageExtension: String = "html"
 
+    /// What a client asking for the picture is told when there is none, and how
+    /// long it is asked to wait before asking again. A camera being plugged in,
+    /// or permission being granted, is the kind of thing that happens in
+    /// seconds, so the wait is short enough that a client which simply obeys it
+    /// picks the picture up almost as soon as it exists.
+    private static let streamRetryAfterSeconds: Int = 5
+    private static let noPictureBody: String = """
+        Net Camera has no picture to send at the moment. There is either no \
+        camera connected, or Net Camera has not been allowed to use one. \
+        Try again shortly.
+
+        """
+
     // MARK: - Failure
 
     /// Why the server is not running.
@@ -133,7 +146,21 @@ final class NCHTTPServer {
         // being cut — because a client left registered is a phantom that keeps
         // the encoder running for nobody.
         router.get("/stream") { _, _ -> Response in
-            let client: NCMJPEGClient = stream.open()
+            // With no camera there is no picture, and a multipart body promised
+            // and then never written is a connection that hangs until something
+            // gives up. The client is told so in the terms HTTP already has for
+            // it: temporarily unable, try again shortly.
+            guard let client: NCMJPEGClient = stream.open() else {
+                return Response(
+                    status: .serviceUnavailable,
+                    headers: [
+                        .contentType: "text/plain; charset=utf-8",
+                        .retryAfter: "\(Self.streamRetryAfterSeconds)",
+                        .cacheControl: "no-store",
+                    ],
+                    body: ResponseBody(
+                        byteBuffer: ByteBuffer(string: Self.noPictureBody)))
+            }
             return Response(
                 status: .ok,
                 headers: [

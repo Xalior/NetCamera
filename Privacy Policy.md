@@ -1,34 +1,96 @@
 # Privacy Policy for Net Camera
-This privacy policy governs your use of the software application Net Camera (“Application”) for macOS that was created by D. Rimron-Soutter. The Application is a utility to display the output of your connected USB cameras for presentations.
- 
-### Automatically Collected Information 
-The Application may collect certain information automatically, including, but not limited to, the type of desktop device you use, the type of cameras discovered, your operating system, and information about the way you use the Application.
- 
-This Application does not collect any data, images, or streams captured through the USB cameras.
- 
-### We may disclose User Provided and Automatically Collected Information:
-•	as required by law, such as to comply with a subpoena, or similar legal process;
-•	when we believe in good faith that disclosure is necessary to protect our rights, protect your safety or the safety of others, investigate fraud, or respond to a government request;
-•	with our trusted services providers who work on our behalf, do not have an independent use of the information we disclose to them, and have agreed to adhere to the rules set forth in this privacy statement.
-•	if D. Rimron-Soutter is involved in a merger, acquisition, or sale of all or a portion of its assets, you will be notified via email and/or a prominent notice on our Web site of any change in ownership or uses of this information, as well as any choices you may have regarding this information.
- 
-### What are my opt-out rights?
-You can stop all collection of information by the Application easily by uninstalling the Application. You may use the standard uninstall processes via the application marketplace or network. 
- 
-### Data Retention Policy, Managing Your Information
-We will retain User Provided data for as long as you use the Application and for a reasonable time thereafter. We will retain Automatically Collected information for up to 24 months and thereafter may store it in aggregate. If you’d like us to delete User Provided Data that you have provided via the Application, please contact us at darran@xalior.com and we will respond in a reasonable time. Please note that some or all of the User Provided Data may be required in order for the Application to function properly.
- 
-### Children
-We do not use the Application to knowingly solicit data from or market to children under the age of 13. If a parent or guardian becomes aware that his or her child has provided us with information without their consent, he or she should contact us at darran@xalior.com. We will delete such information from our files within a reasonable time.
- 
-### Security
-We are concerned about safeguarding the confidentiality of your information. We provide physical, electronic, and procedural safeguards to protect information we process and maintain. For example, we limit access to this information to authorized employees and contractors who need to know that information in order to operate, develop or improve our Application. Please be aware that, although we endeavor provide reasonable security for information we process and maintain, no security system can prevent all potential security breaches.
- 
-### Changes
-This Privacy Policy may be updated from time to time for any reason. We will notify you of any changes to our Privacy Policy by posting the new Privacy Policy here. You are advised to consult this Privacy Policy regularly for any changes, as continued use is deemed approval of all changes. You can check the commits on this page to view the history of updates.
- 
-### Your Consent
-By using the Application, you are consenting to our processing of your information as set forth in this Privacy Policy now and as amended by us. "Processing,” means using cookies on a computer/hand held device or using or touching information in any way, including, but not limited to, collecting, storing, deleting, using, combining and disclosing information, all of which activities will take place in the United Kingdom. If you reside outside the United Kingdom your information will be transferred, processed and stored there under United Kingdom privacy standards. 
- 
-### Contact us
-If you have any questions regarding privacy while using the Application, or have questions about our practices, please contact us via email at darran@xalior.com.
+
+Net Camera is a macOS application, made by D. Rimron-Soutter, that shows a
+connected USB camera's picture in a window and can serve that same picture to
+other devices on the local network. This policy describes exactly what the
+app does with data, because that is short enough to state in full rather than
+in general terms.
+
+## Nothing is collected
+
+Net Camera collects no data of any kind, about you, your device, or your use
+of the app, and sends nothing to the developer or to any third party. There is
+no analytics, no crash reporting, and no code in the app that opens an
+outgoing network connection to anywhere. The app has no way to send data to
+the developer, or to anyone else: it can only answer connections made to it
+(see "The network stream" below).
+
+Nobody, including the developer, receives any information from your use of
+this app.
+
+## The camera picture
+
+The camera picture is not recorded, saved automatically, or sent anywhere by
+the app. It exists only as a live video signal, shown in the app's window and,
+while the app is running, on the network stream described below. Saving a
+picture is something you do deliberately: choosing "Save Image" writes one
+frame to a location you pick, using a standard macOS save dialog. The app can
+only write to the file you choose; it has no access to the rest of your disk.
+
+## The network stream
+
+Net Camera's reason for existing is to let another device on the same network
+watch the camera. While the app is running, it runs a small web server on the
+Mac, listening on TCP port 50128, on every network interface the Mac has, not
+only ones you might expect (such as a home Wi-Fi network). Any device that can
+reach that port on your Mac can open a web page there and watch the live
+camera picture.
+
+This stream has no password and no login of any kind. Anyone who can reach the
+port can watch it. There is currently no way to restrict who can connect. Take
+this into account for the network you run the app on: a network you trust,
+such as a home network behind a router, exposes the stream only to devices on
+that network; a network you do not control, such as public Wi-Fi, exposes it
+more widely.
+
+The server starts automatically when the app launches and stops when the app
+quits. There is no setting to turn it off while the app is running.
+
+## Settings
+
+Net Camera remembers your choices between launches: which camera you last
+used, whether the picture is mirrored or flipped, its rotation, the window's
+size and position, and whether the window has a border. These are stored by
+macOS on your Mac, using the standard mechanism apps use for preferences
+(`UserDefaults`). They never leave your Mac and are not shared with the
+developer or anyone else. The app's own "Clear Settings" menu item deletes
+them. Deleting the app itself leaves its settings folder behind in your home
+Library folder until you remove that as well, which is how macOS treats every
+sandboxed app.
+
+## Camera access
+
+The app can only see a camera after macOS asks you for permission and you
+grant it. You can review or withdraw that permission at any time in System
+Settings, under Privacy & Security > Camera.
+
+## Data retention
+
+There is nothing to retain. Net Camera stores nothing about you beyond the
+settings described above, which live only on your own Mac for as long as the
+app remains installed.
+
+## Children
+
+Net Camera does not collect information from anyone, including children.
+
+## Changes to this policy
+
+If this policy changes, the new version will be posted in the same place. The
+app's source code is public, so any change to what the app actually does can
+be checked directly against it.
+
+## Where this is handled
+
+D. Rimron-Soutter is based in the United Kingdom, and any handling of
+information in connection with this app (for example, replying to an email)
+takes place there.
+
+## Licence
+
+Net Camera is open source, licensed under Apache 2.0. The source code is
+available in this repository.
+
+## Contact
+
+Questions about this policy or the app can be sent to darran@xalior.com.

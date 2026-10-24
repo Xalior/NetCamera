@@ -12,9 +12,13 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
 
     // MARK: - USB Watcher
     let usb: NCUsbWatcher = NCUsbWatcher()
+
+    /// A camera has been plugged in or unplugged. Both are handled the same
+    /// way, by working out afresh whether there is a picture: the first camera
+    /// arriving takes the app out of the no-picture state, and the last one
+    /// leaving puts it back into it.
     func deviceCountChanged() {
-        self.detectVideoDevices()
-        self.startCaptureWithVideoDevice(defaultDevice: selectedDeviceIndex)
+        self.updateCameraAvailability()
     }
 
     // MARK: - Interface Builder Outlets
@@ -118,6 +122,208 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
         popup.runModal()
     }
 
+    // MARK: - Camera Availability
+
+    /// What the app currently believes about the picture. Main thread only.
+    private(set) var availability: NCCameraAvailability = .undetermined
+
+    /// Whether access has already been asked for while the answer has stayed
+    /// undecided.
+    ///
+    /// It stops two things. A re-check made while the system's own prompt is
+    /// still on screen would otherwise queue a second request behind it. And a
+    /// request that comes back without settling anything — which is what
+    /// happens on a Mac with no camera — would otherwise be asked again
+    /// immediately, for ever. The flag is cleared as soon as the state is
+    /// anything other than undecided, so a camera plugged in later still gets
+    /// the question asked.
+    private var hasRequestedCameraAccess: Bool = false
+
+    /// Whether launch has finished, so the notifications that arrive around it
+    /// do not act on a window and menus that are not built yet.
+    private var hasFinishedLaunching: Bool = false
+
+    /// The sheet explaining why there is no picture, while it is on screen.
+    ///
+    /// It is a sheet rather than a modal alert because the explanation has to
+    /// last: an alert the user dismisses leaves a black window explaining
+    /// nothing, whereas a sheet stays attached to the window until either the
+    /// user acts on it or the picture arrives and the app takes it down.
+    private var noPictureSheet: NSAlert?
+
+    /// Works out whether there is a picture to show, and puts the app into that
+    /// state.
+    ///
+    /// This is the single road into and out of every no-picture condition.
+    /// Permission that has not been granted, a Mac with no camera, and the last
+    /// camera being unplugged are one state reached three ways, and none of
+    /// them stops the app: the window, the menus and the web server all stay
+    /// exactly as they were.
+    func updateCameraAvailability() {
+        self.detectVideoDevices()
+
+        let status: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        let resolved: NCCameraAvailability = NCCameraAvailability.resolve(
+            authorization: status, deviceCount: self.devices.count)
+        // The two facts and the conclusion drawn from them, together, because
+        // any of the three alone leaves the other two to be guessed at.
+        NSLog(
+            "Camera availability: authorization %d, %d device(s) -> %@",
+            status.rawValue, self.devices.count, String(describing: resolved))
+        self.enter(resolved)
+
+        if resolved == .undetermined {
+            self.requestCameraAccess()
+        } else {
+            self.hasRequestedCameraAccess = false
+        }
+    }
+
+    /// Asks for camera access, at a moment this app chooses.
+    ///
+    /// Left alone, the permission request would arrive as a side effect of the
+    /// capture session starting, which puts a system prompt on screen at a
+    /// moment nothing here decided and gives the app no way to know what was
+    /// answered. Asking outright means the answer comes back to a completion
+    /// handler, and a refusal becomes a state the app can explain rather than
+    /// a window that stays black.
+    private func requestCameraAccess() {
+        guard !self.hasRequestedCameraAccess else { return }
+        self.hasRequestedCameraAccess = true
+        NSLog("Camera access has not been decided; asking for it")
+        AVCaptureDevice.requestAccess(for: .video) { granted in
+            // The answer arrives on a queue of AVFoundation's choosing, and
+            // everything it leads to — menus, the window, the capture session —
+            // belongs to the main thread.
+            DispatchQueue.main.async { [weak self] in
+                NSLog("Camera access was %@", granted ? "granted" : "refused")
+                self?.updateCameraAvailability()
+            }
+        }
+    }
+
+    /// Moves the app into a state, whether or not it was already in it.
+    ///
+    /// Re-entering the same state is ordinary and must stay cheap: every USB
+    /// event and every return to the foreground comes through here.
+    private func enter(_ availability: NCCameraAvailability) {
+        let changed: Bool = availability != self.availability
+        self.availability = availability
+        if changed {
+            NSLog("Camera availability is now %@", String(describing: availability))
+        }
+
+        if availability.hasPicture {
+            self.startCaptureWithVideoDevice(defaultDevice: self.selectedDeviceIndex)
+        } else {
+            self.stopCapture()
+            self.showNoPicture(
+                explanation: availability.explanation,
+                titleDetail: availability.windowTitleDetail,
+                offersSystemSettings: availability.offersSystemSettings)
+        }
+    }
+
+    /// Gives up the capture session and everything that depends on it, leaving
+    /// the window, the menus and the web server standing.
+    private func stopCapture() {
+        // Said before the session goes, so a browser watching is told the
+        // stream has ended rather than left holding a connection that will
+        // never carry another byte.
+        self.mjpegSink.setLive(false)
+
+        if self.captureSession != nil {
+            // Late callbacks from a session being torn down would deliver the
+            // old camera's picture into a window that is explaining why there
+            // is none.
+            self.videoOutput?.setSampleBufferDelegate(nil, queue: nil)
+            self.captureSession.stopRunning()
+        }
+        self.captureSession = nil
+        self.videoOutput = nil
+        self.input = nil
+        // Otherwise the last frame stays frozen in the window, which reads as a
+        // picture that is live and merely very still.
+        self.displaySink.clear()
+    }
+
+    /// Says, in the window, that there is no picture and what can be done about
+    /// it.
+    ///
+    /// The window title carries the state permanently and the sheet carries the
+    /// detail. Both are needed: the title is the shortest true statement and
+    /// survives everything, and the sheet is where a route out of the problem
+    /// can be offered.
+    private func showNoPicture(
+        explanation: String?, titleDetail: String, offersSystemSettings: Bool
+    ) {
+        self.setWindowTitle(detail: titleDetail)
+
+        guard self.hasFinishedLaunching, let explanation: String = explanation else { return }
+        // One sheet at a time. Coming back from System Settings with the
+        // problem unfixed re-enters this state, and a stack of identical sheets
+        // would be the result.
+        guard self.noPictureSheet == nil else { return }
+
+        let sheet: NSAlert = NSAlert()
+        sheet.messageText = "There is no picture"
+        sheet.informativeText = explanation
+        if offersSystemSettings {
+            sheet.addButton(withTitle: "Open Camera Settings")
+        }
+        sheet.addButton(withTitle: "OK")
+
+        self.noPictureSheet = sheet
+        sheet.beginSheetModal(for: self.window) { [weak self] response in
+            guard let self else { return }
+            self.noPictureSheet = nil
+            guard offersSystemSettings, response == .alertFirstButtonReturn else { return }
+            self.openCameraSettings()
+        }
+    }
+
+    /// Takes down the explanation, because there is a picture again.
+    private func dismissNoPictureSheet() {
+        guard let sheet: NSAlert = self.noPictureSheet else { return }
+        self.noPictureSheet = nil
+        self.window.endSheet(sheet.window)
+    }
+
+    /// Opens Privacy & Security settings at its Camera section.
+    ///
+    /// The only route out of a refusal that a sandboxed app has: it cannot
+    /// change the setting itself, and asking a second time is not possible
+    /// because macOS answers a request that has already been decided without
+    /// consulting the user at all.
+    private func openCameraSettings() {
+        guard let url: URL = NCCameraAvailability.systemSettingsURL else { return }
+        let opened: Bool = NSWorkspace.shared.open(url)
+        NSLog("Camera settings %@", opened ? "opened" : "would not open")
+        if !opened {
+            self.errorMessage(
+                message:
+                    "Net Camera could not open Privacy & Security settings. Open System Settings, "
+                    + "then Privacy & Security, then Camera, and switch Camera on for Net Camera.")
+        }
+    }
+
+    /// The window's title, always in the `Net Camera: [<detail>]` shape.
+    ///
+    /// The nib bakes the bare string "Net Camera" into the window, and a
+    /// bracketed detail is the only evidence from outside that the real
+    /// delegate is running — when the nib's class lookup fails the app still
+    /// builds, still launches and still opens a normal-looking window wearing
+    /// that bare title. Every state names itself here rather than leaving the
+    /// title alone, so the signal survives having no camera.
+    private func setWindowTitle(detail: String) {
+        self.windowTitle = String(format: "Net Camera: [%@]", detail)
+        self.window.title = self.windowTitle
+        // Traced because the title is the app's own statement of what it is
+        // doing, and reading it back off the window needs permissions an
+        // unattended test run does not have.
+        NSLog("Window title is now %@", self.windowTitle)
+    }
+
     // MARK: - Device Management
 
     /// Rebuilds the device list and the whole of the Select Source menu.
@@ -142,23 +348,21 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
             mediaType: .video,
             position: .unspecified)
         self.devices = discoverySession.devices
-        if devices.isEmpty {
-            let popup: NSAlert = NSAlert()
-            popup.messageText =
-                "Unfortunately, you don't appear to have any cameras connected. Goodbye for now!"
-            popup.runModal()
-            NSApp.terminate(nil)
-        } else {
-            NSLog("%d devices found", devices.count)
-        }
+        NSLog("%d devices found", devices.count)
 
         let deviceMenu: NSMenu = NSMenu()
         var deviceIndex: Int = 0
 
-        if self.captureSession == nil {
-            NSLog("first time - loadSettings")
-            self.loadSettings()
+        // An empty menu looks like a menu that is broken. Saying there is
+        // nothing to choose from is the same statement the window is making,
+        // in the place a user goes looking for cameras.
+        if self.devices.isEmpty {
+            let emptyItem: NSMenuItem = NSMenuItem(
+                title: "No cameras connected", action: nil, keyEquivalent: "")
+            emptyItem.isEnabled = false
+            deviceMenu.addItem(emptyItem)
         }
+
         // Fall back to the first device: if the selected one has just been unplugged there is
         // no session device left to match against. refreshSourceMenuState() settles the real
         // selection once the menu is built.
@@ -232,24 +436,33 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
 
     func startCaptureWithVideoDevice(defaultDevice: Int) {
         NSLog("Starting capture with device index %d", defaultDevice)
+        // Every camera the app knew about can go away between one main-thread
+        // turn and the next, so the index is checked rather than trusted.
+        guard self.devices?.indices.contains(defaultDevice) == true else {
+            NSLog("There is no device at index %d to capture from", defaultDevice)
+            return
+        }
         let device: AVCaptureDevice = self.devices[defaultDevice]
 
-        if captureSession != nil {
-
-            // if we are "restarting" a session but the device is the same exit early
-            let currentDevice: AVCaptureDevice =
-                (self.captureSession.inputs[0] as! AVCaptureDeviceInput).device
-            guard currentDevice != device else {
+        if let session: AVCaptureSession = self.captureSession {
+            // if we are "restarting" a session but the device is the same exit early.
+            // The session's device is asked for rather than assumed: a camera that has
+            // been unplugged takes its input out of the session with it, leaving a
+            // session that is still there and has no device at all.
+            if let currentDevice: AVCaptureDevice = self.activeCaptureDevice,
+                currentDevice == device
+            {
                 // A USB hot-plug lands here: the session is left alone, but re-assert the
                 // chosen resolution in case the device was reconfigured behind us.
                 self.applyChosenResolution(to: device)
+                self.pictureIsShowing(from: device)
                 return
             }
 
             // Late callbacks from the outgoing session would carry the old
             // camera's picture into the new one's window.
             self.videoOutput?.setSampleBufferDelegate(nil, queue: nil)
-            captureSession.stopRunning()
+            session.stopRunning()
         }
         captureSession = AVCaptureSession()
 
@@ -270,8 +483,8 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
 
             guard self.captureSession.canAddOutput(self.videoOutput) else {
                 NSLog("The session will not take a video data output")
-                self.errorMessage(
-                    message:
+                self.cameraDidNotStart(
+                    reason:
                         "Unfortunately, this camera cannot deliver frames to Net Camera. Try a different one."
                 )
                 return
@@ -293,19 +506,37 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
 
             self.captureSession.startRunning()
 
-            self.windowTitle = String(format: "Net Camera: [%@]", device.localizedName)
-            self.window.title = self.windowTitle
             self.deviceName = device.localizedName
             // Before applySettings, which sizes the window from the format now in force.
             self.applyChosenResolution(to: device)
             self.applySettings()
+            self.pictureIsShowing(from: device)
         } catch {
-            NSLog("Error while opening device")
-            self.errorMessage(
-                message:
+            NSLog("Error while opening device: %@", String(describing: error))
+            self.cameraDidNotStart(
+                reason:
                     "Unfortunately, there was an error when trying to access the camera. Try again or select a different one."
             )
         }
+    }
+
+    /// Everything that follows from the picture being on screen: the window
+    /// names the camera, the explanation of its absence comes down, and the
+    /// network stream has something to send again.
+    private func pictureIsShowing(from device: AVCaptureDevice) {
+        self.setWindowTitle(detail: device.localizedName)
+        self.dismissNoPictureSheet()
+        self.mjpegSink.setLive(true)
+    }
+
+    /// A camera that was there and would not start. Not fatal either: the app
+    /// falls back into the same no-picture state as every other reason for
+    /// having none, so another camera can be chosen or this one plugged in
+    /// again.
+    private func cameraDidNotStart(reason: String) {
+        self.stopCapture()
+        self.setWindowTitle(detail: "camera unavailable")
+        self.errorMessage(message: reason)
     }
 
     // MARK: - Settings Management
@@ -457,10 +688,14 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
         return position % 2 == 0
     }
 
+    /// Locks the window to the shape of the picture, when there is a picture
+    /// and the user asked for the lock. With no camera there is no shape to
+    /// lock to, so the window is left free to be any size — the setting is
+    /// remembered and applied again as soon as a camera starts.
     func fixAspectRatio() {
-        if isAspectRatioFixed, #available(OSX 10.15, *) {
-            let height: Int32 = input.device.activeFormat.formatDescription.dimensions.height
-            let width: Int32 = input.device.activeFormat.formatDescription.dimensions.width
+        if isAspectRatioFixed, let device: AVCaptureDevice = self.activeCaptureDevice {
+            let height: Int32 = device.activeFormat.formatDescription.dimensions.height
+            let width: Int32 = device.activeFormat.formatDescription.dimensions.width
             let size: NSSize =
                 self.isLandscape()
                 ? NSMakeSize(CGFloat(width), CGFloat(height))
@@ -484,14 +719,14 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
     }
 
     @IBAction func fitToActualSize(_ sender: NSMenuItem) {
-        if #available(OSX 10.15, *) {
-            let height: Int32 = input.device.activeFormat.formatDescription.dimensions.height
-            let width: Int32 = input.device.activeFormat.formatDescription.dimensions.width
-            var currentSize: CGSize = self.window.contentLayoutRect.size
-            currentSize.width = CGFloat(self.isLandscape() ? width : height)
-            currentSize.height = CGFloat(self.isLandscape() ? height : width)
-            self.window.setContentSize(currentSize)
-        }
+        // Nothing to fit to while there is no picture.
+        guard let device: AVCaptureDevice = self.activeCaptureDevice else { return }
+        let height: Int32 = device.activeFormat.formatDescription.dimensions.height
+        let width: Int32 = device.activeFormat.formatDescription.dimensions.width
+        var currentSize: CGSize = self.window.contentLayoutRect.size
+        currentSize.width = CGFloat(self.isLandscape() ? width : height)
+        currentSize.height = CGFloat(self.isLandscape() ? height : width)
+        self.window.setContentSize(currentSize)
     }
 
     // MARK: - Saving Stills
@@ -627,9 +862,29 @@ class NCAppDelegate: NSObject, NSApplicationDelegate, NCUsbWatcherDelegate,
             self?.errorMessage(message: failure.message)
         }
 
-        detectVideoDevices()
-        startCaptureWithVideoDevice(defaultDevice: defaultDeviceIndex)
+        // Settings belong to the window and the picture's orientation, neither
+        // of which needs a camera to exist, so they are read before anything is
+        // known about one and survive a launch that finds no camera at all.
+        self.loadSettings()
+
+        // Listening before asking, so a camera plugged in while the permission
+        // prompt is still on screen is not missed.
         usb.delegate = self
+
+        self.hasFinishedLaunching = true
+        self.updateCameraAvailability()
+    }
+
+    /// Coming back to the app is the moment to look again.
+    ///
+    /// macOS gives no notification when camera permission is granted, so a user
+    /// who goes to Privacy & Security, switches Camera on and comes back would
+    /// otherwise be looking at an app that still believes it was refused. This
+    /// is the cheapest reliable moment to find out: it costs one call to
+    /// AVFoundation, and only when there is no picture.
+    func applicationDidBecomeActive(_ aNotification: Notification) {
+        guard self.hasFinishedLaunching, self.captureSession == nil else { return }
+        self.updateCameraAvailability()
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
