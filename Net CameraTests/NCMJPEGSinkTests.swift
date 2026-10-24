@@ -82,8 +82,9 @@ final class NCMJPEGSinkTests: XCTestCase {
     func testAClientThatHasBeenClosedTakesTheEncodeCostWithIt() throws {
         let encoder = CountingEncoder()
         let sink = NCMJPEGSink(encoder: encoder.encode)
+        sink.setLive(true)
 
-        let client = sink.open()
+        let client = try XCTUnwrap(sink.open())
         sink.receive(try makePixelBuffer(), at: .zero)
         XCTAssertEqual(encoder.calls, 1)
 
@@ -98,9 +99,10 @@ final class NCMJPEGSinkTests: XCTestCase {
     func testTwoClientsCostOneEncodeAndBothGetTheSameBytes() async throws {
         let encoder = CountingEncoder()
         let sink = NCMJPEGSink(encoder: encoder.encode)
+        sink.setLive(true)
 
-        let first = sink.open()
-        let second = sink.open()
+        let first = try XCTUnwrap(sink.open())
+        let second = try XCTUnwrap(sink.open())
         XCTAssertEqual(sink.clientCount, 2)
 
         sink.receive(try makePixelBuffer(), at: .zero)
@@ -119,7 +121,8 @@ final class NCMJPEGSinkTests: XCTestCase {
     func testEveryClientIsOfferedEveryFrameOnce() async throws {
         let encoder = CountingEncoder()
         let sink = NCMJPEGSink(encoder: encoder.encode)
-        let client = sink.open()
+        sink.setLive(true)
+        let client = try XCTUnwrap(sink.open())
 
         sink.receive(try makePixelBuffer(), at: .zero)
         sink.close(client)
@@ -136,8 +139,9 @@ final class NCMJPEGSinkTests: XCTestCase {
     func testAClosedClientReceivesNothingFurtherAndItsStreamEnds() async throws {
         let encoder = CountingEncoder()
         let sink = NCMJPEGSink(encoder: encoder.encode)
-        let leaving = sink.open()
-        let staying = sink.open()
+        sink.setLive(true)
+        let leaving = try XCTUnwrap(sink.open())
+        let staying = try XCTUnwrap(sink.open())
 
         sink.receive(try makePixelBuffer(), at: .zero)
         sink.close(leaving)
@@ -157,7 +161,8 @@ final class NCMJPEGSinkTests: XCTestCase {
 
     func testClosingAClientTwiceIsHarmless() throws {
         let sink = NCMJPEGSink(encoder: CountingEncoder().encode)
-        let client = sink.open()
+        sink.setLive(true)
+        let client = try XCTUnwrap(sink.open())
 
         sink.close(client)
         sink.close(client)
@@ -173,7 +178,8 @@ final class NCMJPEGSinkTests: XCTestCase {
     func testASlowClientIsLeftWithTheNewestFrameNotABacklog() async throws {
         let encoder = CountingEncoder()
         let sink = NCMJPEGSink(encoder: encoder.encode)
-        let client = sink.open()
+        sink.setLive(true)
+        let client = try XCTUnwrap(sink.open())
 
         for value in 1...50 {
             encoder.picture = Data([UInt8(value)])
@@ -184,6 +190,74 @@ final class NCMJPEGSinkTests: XCTestCase {
         XCTAssertEqual(
             offered, NCMJPEGFraming.part(for: Data([50])),
             "what a client that never read gets is the picture as it is now")
+    }
+
+    // MARK: - Nothing to send
+
+    /// A sink nobody has told there is a picture does not claim one. This is
+    /// what a client connecting with no camera meets: a refusal it can act on,
+    /// rather than a stream that is opened and then never carries a byte.
+    func testASinkWithNoPictureRefusesToOpenAStream() {
+        let sink = NCMJPEGSink(encoder: CountingEncoder().encode)
+
+        XCTAssertFalse(sink.isLive, "a sink that has been told nothing claims nothing")
+        XCTAssertNil(sink.open(), "there is no picture, so there is no stream to open")
+        XCTAssertEqual(sink.clientCount, 0)
+    }
+
+    func testSayingThePictureIsFlowingIsWhatOpensTheStream() throws {
+        let sink = NCMJPEGSink(encoder: CountingEncoder().encode)
+
+        sink.setLive(true)
+        XCTAssertTrue(sink.isLive)
+        let client = try XCTUnwrap(sink.open())
+        XCTAssertEqual(sink.clientCount, 1)
+
+        sink.close(client)
+    }
+
+    /// The camera being unplugged while somebody is watching. Their stream ends
+    /// rather than freezing on its last frame for ever, which is what lets
+    /// whoever is writing it finish the response properly.
+    func testThePictureStoppingEndsEveryStreamInProgress() async throws {
+        let encoder = CountingEncoder()
+        let sink = NCMJPEGSink(encoder: encoder.encode)
+        sink.setLive(true)
+        let watching = try XCTUnwrap(sink.open())
+
+        sink.receive(try makePixelBuffer(), at: .zero)
+        sink.setLive(false)
+
+        XCTAssertEqual(sink.clientCount, 0, "nobody is left watching a picture that stopped")
+        let delivered: [Data] = await everythingOffered(to: watching)
+        XCTAssertEqual(
+            delivered, [NCMJPEGFraming.part(for: encoder.picture)],
+            "the frame from before it stopped, and then the end of the stream")
+    }
+
+    /// And no new client is taken on in the meantime.
+    func testNoStreamIsOpenedOnceThePictureHasStopped() throws {
+        let sink = NCMJPEGSink(encoder: CountingEncoder().encode)
+        sink.setLive(true)
+        let first = try XCTUnwrap(sink.open())
+        sink.close(first)
+
+        sink.setLive(false)
+        XCTAssertNil(sink.open())
+        XCTAssertEqual(sink.clientCount, 0)
+    }
+
+    /// Saying the same thing twice changes nothing, which matters because every
+    /// capture start says it and a hot-plug can produce several in a row.
+    func testSayingThePictureIsFlowingTwiceKeepsTheClientsItAlreadyHas() throws {
+        let sink = NCMJPEGSink(encoder: CountingEncoder().encode)
+        sink.setLive(true)
+        let client = try XCTUnwrap(sink.open())
+
+        sink.setLive(true)
+        XCTAssertEqual(sink.clientCount, 1, "a client is not thrown out by good news")
+
+        sink.close(client)
     }
 
     // MARK: - Helpers
